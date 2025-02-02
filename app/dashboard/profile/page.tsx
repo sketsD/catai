@@ -58,7 +58,7 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-sm mb-1">Name</label>
                   <Input
-                    value={user?.name}
+                    value={user?.firstname}
                     readOnly
                     className="rounded-[8px] border-color-gray-250"
                   />

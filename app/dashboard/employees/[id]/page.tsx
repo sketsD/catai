@@ -29,6 +29,7 @@ export default function EmployeeDetailPage({
     (state) => state.user
   );
   const dispatch = useAppDispatch();
+
   useEffect(() => {
     dispatch(getCurrentUser({ id: params.id }));
     console.log("This is current user");
@@ -48,11 +49,13 @@ export default function EmployeeDetailPage({
         <Spinner />
       </div>
     );
-  // if (currentUser === "" || error || status === "error") {
-  //   <div className="flex items-center justify-center w-full min-h-[calc(100vh-3rem)] bg-color-gray-200 p-2 sm:p-6">
-  //     Can't load user's data
-  //   </div>;
-  // }
+
+  if (currentUser === null || error || status === "error")
+    return (
+      <div className="flex items-center justify-center w-full min-h-[calc(100vh-3rem)] bg-color-gray-200 p-2 sm:p-6">
+        Can't load user's data
+      </div>
+    );
   return (
     <div className="min-h-screen bg-color-gray-200 p-2 sm:p-6">
       <div className="flex flex-col gap-6 min-h-[calc(100vh-3rem)] overflow-y-auto bg-white border-[1px] border-color-gray-250 rounded-[8px]">
@@ -118,7 +121,7 @@ export default function EmployeeDetailPage({
                 <div>
                   <label className="block text-sm mb-1">Department</label>
                   <Input
-                    value={currentUser.department}
+                    value={currentUser.role}
                     readOnly
                     className="rounded-[8px] border-color-gray-250"
                   />

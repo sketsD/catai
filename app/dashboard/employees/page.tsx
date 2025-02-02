@@ -42,7 +42,7 @@ export default function EmployeesPage() {
   const { users, loading, error, status } = useAppSelector(
     (state) => state.user
   );
-  const { user: myUser } = useAppSelector((state) => state.auth);
+  const { userid } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     if (!loading && status === "idle") {
@@ -190,7 +190,7 @@ export default function EmployeesPage() {
                   >
                     <div className="truncate">
                       {user.id}
-                      {myUser?.id === user.id && " (You)"}
+                      {userid === user.id && " (You)"}
                     </div>
                     <div className="text-center">{isRole(user.role)}</div>
                     <div className="flex justify-center">
