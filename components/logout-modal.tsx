@@ -7,7 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth-context";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { logout } from "@/store/slices/authSlice";
 
 interface LogoutModalProps {
   isOpen: boolean;
@@ -15,10 +16,10 @@ interface LogoutModalProps {
 }
 
 export function LogoutModal({ isOpen, onClose }: LogoutModalProps) {
-  const { logout } = useAuth();
+  const dispatch = useAppDispatch();
 
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
+    dispatch(logout());
     onClose();
   };
 

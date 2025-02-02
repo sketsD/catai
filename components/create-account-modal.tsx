@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -19,23 +19,26 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { SuccessModal } from "./success-modal";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { clearError, registerUser } from "@/store/slices/authSlice";
+import { FailedModal } from "./FailedModal";
+import { ChevronDown } from "lucide-react";
+import { Spinner } from "./ui/spinner";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  firstname: z.string().min(2, "Name must be at least 2 characters"),
   surname: z.string().min(2, "Surname must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   id: z.string().min(8, "ID must be at least 8 characters"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  userType: z.enum(["Pharmacy", "Admin", "Technical"]),
+  userType: z.enum(["pharm", "admin", "tech"]),
 });
 
 interface CreateAccountModalProps {
@@ -47,25 +50,55 @@ export function CreateAccountModal({
   isOpen,
   onClose,
 }: CreateAccountModalProps) {
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  const [showFailed, setShowFailed] = useState<boolean>(false);
+  const [error, setError] = useState("");
+  const dispatch = useAppDispatch();
+  const {
+    loading,
+    error: registerError,
+    status,
+  } = useAppSelector((state) => state.auth);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      firstname: "",
       surname: "",
       email: "",
       id: "",
       password: "",
-      userType: "Pharmacy",
+      userType: "pharm",
     },
   });
 
+  useEffect(() => {
+    if (!loading && status === "success") {
+      onClose();
+      setShowSuccess(true);
+      form.reset();
+    } else if (!loading && status === "error") {
+      setError(registerError || "Failed to register");
+      setShowFailed(true);
+    }
+    return () => {
+      dispatch(clearError());
+    };
+  }, [registerError, dispatch, clearError, status]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Here you would typically send the data to your API
     console.log(values);
-    onClose();
-    setShowSuccess(true);
+    dispatch(clearError());
+    await dispatch(
+      registerUser({
+        id: values.id,
+        password: values.password,
+        role: values.userType,
+        firstname: values.firstname,
+        surname: values.surname,
+        email: values.email,
+      })
+    );
   }
 
   return (
@@ -88,7 +121,7 @@ export function CreateAccountModal({
                 <div className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="firstname"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Name</FormLabel>
@@ -141,23 +174,54 @@ export function CreateAccountModal({
                     control={form.control}
                     name="userType"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="w-full">
                         <FormLabel>User Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl className="h-12 rounded-[8px] border-color-gray-250">
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select user type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="bg-white">
-                            <SelectItem value="Pharmacy">Pharmacy</SelectItem>
-                            <SelectItem value="Admin">Admin</SelectItem>
-                            <SelectItem value="Technical">Technical</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="flex w-full justify-between h-12 rounded-[8px] border-color-gray-250"
+                            >
+                              {field.value
+                                ? field.value === "admin"
+                                  ? "Admin"
+                                  : field.value === "pharm"
+                                  ? "Pharmacy"
+                                  : "Technical"
+                                : "Select user type"}
+                              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="p-0" align="start">
+                            <div className="grid gap-1">
+                              {["pharm", "admin", "tech"].map((type) => (
+                                <Button
+                                  key={type}
+                                  variant="ghost"
+                                  className={`w-full justify-between font-normal py-3 rounded-[8px] hover:bg-color-gray-200 ${
+                                    field.value === type
+                                      ? "text-logoblue bg-color-gray-200"
+                                      : "hover:text-logoblue"
+                                  }`}
+                                  onClick={() => {
+                                    field.onChange(type);
+                                    form.setValue(
+                                      "userType",
+                                      type as "pharm" | "admin" | "tech"
+                                    );
+                                  }}
+                                >
+                                  {type === "admin"
+                                    ? "Admin"
+                                    : type === "pharm"
+                                    ? "Pharmacy"
+                                    : "Technical"}
+                                </Button>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage className="text-color-red-danger" />
                       </FormItem>
                     )}
@@ -203,7 +267,7 @@ export function CreateAccountModal({
                   type="submit"
                   className="bg-[#14ae5c] hover:bg-[#14ae5c]/90 text-white rounded-[8px] "
                 >
-                  Create
+                  Create {loading && <Spinner />}
                 </Button>
                 <Button
                   type="button"
@@ -221,6 +285,11 @@ export function CreateAccountModal({
       <SuccessModal
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
+      />
+      <FailedModal
+        isOpen={showFailed}
+        onClose={() => setShowFailed(false)}
+        error={error}
       />
     </>
   );

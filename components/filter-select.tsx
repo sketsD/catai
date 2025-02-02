@@ -17,16 +17,16 @@ interface FilterSelectProps {
 
 interface FilterState {
   all: boolean;
-  pharmacy: boolean;
-  technical: boolean;
+  pharm: boolean;
+  tech: boolean;
   admin: boolean;
 }
 
 export function FilterSelect({ onFilterChange }: FilterSelectProps) {
   const [filters, setFilters] = React.useState<FilterState>({
     all: true,
-    pharmacy: false,
-    technical: false,
+    pharm: false,
+    tech: false,
     admin: false,
   });
 
@@ -35,14 +35,14 @@ export function FilterSelect({ onFilterChange }: FilterSelectProps) {
 
     if (key === "all") {
       newFilters.all = true;
-      newFilters.pharmacy = false;
-      newFilters.technical = false;
+      newFilters.pharm = false;
+      newFilters.tech = false;
       newFilters.admin = false;
     } else {
       newFilters.all = false;
       newFilters[key] = !newFilters[key];
 
-      if (!newFilters.pharmacy && !newFilters.technical && !newFilters.admin) {
+      if (!newFilters.pharm && !newFilters.tech && !newFilters.admin) {
         newFilters.all = true;
       }
     }
@@ -88,30 +88,30 @@ export function FilterSelect({ onFilterChange }: FilterSelectProps) {
                   All Types
                 </Label>
               </div>
-              <div className={getItemStyle(filters.pharmacy)}>
+              <div className={getItemStyle(filters.pharm)}>
                 <Checkbox
                   id="pharmacy"
-                  checked={filters.pharmacy}
-                  onCheckedChange={() => handleFilterChange("pharmacy")}
-                  className={filters.pharmacy ? "text-logoblue" : ""}
+                  checked={filters.pharm}
+                  onCheckedChange={() => handleFilterChange("pharm")}
+                  className={filters.pharm ? "text-logoblue" : ""}
                 />
                 <Label
                   htmlFor="pharmacy"
-                  className={filters.pharmacy ? "text-logoblue" : ""}
+                  className={filters.pharm ? "text-logoblue" : ""}
                 >
                   Pharmacy
                 </Label>
               </div>
-              <div className={getItemStyle(filters.technical)}>
+              <div className={getItemStyle(filters.tech)}>
                 <Checkbox
                   id="technical"
-                  checked={filters.technical}
-                  onCheckedChange={() => handleFilterChange("technical")}
-                  className={filters.technical ? "text-logoblue" : ""}
+                  checked={filters.tech}
+                  onCheckedChange={() => handleFilterChange("tech")}
+                  className={filters.tech ? "text-logoblue" : ""}
                 />
                 <Label
                   htmlFor="technical"
-                  className={filters.technical ? "text-logoblue" : ""}
+                  className={filters.tech ? "text-logoblue" : ""}
                 >
                   Technical
                 </Label>
