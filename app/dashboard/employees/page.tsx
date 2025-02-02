@@ -1,20 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Filter, SortDesc } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/contexts/auth-context";
 import { CreateAccountModal } from "@/components/create-account-modal";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Popover,
   PopoverContent,
@@ -22,50 +15,20 @@ import {
 } from "@/components/ui/popover";
 import SortIcon from "@/components/SortIcon";
 import { FilterSelect } from "@/components/filter-select";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { Spinner } from "@/components/ui/spinner";
+import { getAllUsers } from "@/store/slices/userSlice";
+import { User } from "@/types/global";
+import { clearError } from "@/store/slices/authSlice";
+import { isRole } from "@/utils/helpers";
 
-// Mock data - in real app would come from API
-const employees = [
-  {
-    id: "123456789",
-    name: "Serge",
-    surname: "Stone",
-    email: "stone@mail.com",
-    department: "Department",
-    type: "Pharmacy",
-  },
-  {
-    id: "143567935",
-    name: "John",
-    surname: "Doe",
-    email: "john@mail.com",
-    department: "Department",
-    type: "Technical",
-  },
-  {
-    id: "724174536",
-    name: "Jane",
-    surname: "Smith",
-    email: "jane@mail.com",
-    department: "Department",
-    type: "Admin",
-  },
-  {
-    id: "912536735",
-    name: "Mike",
-    surname: "Johnson",
-    email: "mike@mail.com",
-    department: "Department",
-    type: "Technical",
-  },
-];
-
-const getBadgeColor = (type: string) => {
-  switch (type) {
-    case "Pharmacy":
+const getBadgeColor = (role: string) => {
+  switch (role) {
+    case "pharm":
       return "bg-blue-500 hover:bg-blue-500";
-    case "Technical":
+    case "tech":
       return "bg-purple-500 hover:bg-purple-500";
-    case "Admin":
+    case "admin":
       return "bg-yellow-500 hover:bg-yellow-500";
     default:
       return "bg-gray-500 hover:bg-gray-500";
@@ -73,30 +36,43 @@ const getBadgeColor = (type: string) => {
 };
 
 export default function EmployeesPage() {
-  const { user } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const dispatch = useAppDispatch();
+  const { users, loading, error, status } = useAppSelector(
+    (state) => state.user
+  );
+  const { user: myUser } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (!loading && status === "idle") {
+      dispatch(getAllUsers());
+    }
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch, getAllUsers, clearError, status, loading]);
 
   // Filter employees based on search query
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [filters, setFilters] = useState({
     all: true,
-    pharmacy: false,
-    technical: false,
+    pharm: false,
+    tech: false,
     admin: false,
   });
 
   const filteredAndSortedEmployees = useMemo(() => {
-    return employees
-      .filter((employee) => {
+    return users
+      .filter((user) => {
         const matchesSearch =
-          employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          employee.surname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          employee.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          employee.department.toLowerCase().includes(searchQuery.toLowerCase());
+          user.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          user.surname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          user.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          user.role.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesType =
           filters.all ||
-          filters[employee.type.toLowerCase() as keyof typeof filters];
+          filters[user.role.toLowerCase() as keyof typeof filters];
         return matchesSearch && matchesType;
       })
       .sort((a, b) => {
@@ -106,8 +82,23 @@ export default function EmployeesPage() {
           return b.id.localeCompare(a.id);
         }
       });
-  }, [searchQuery, filters, sortOrder]);
+  }, [
+    searchQuery,
+    filters,
+    sortOrder,
+    dispatch,
+    getAllUsers,
+    clearError,
+    status,
+    loading,
+  ]);
 
+  if (loading)
+    return (
+      <div className=" w-full min-h-[calc(100vh-3rem)] flex items-center justify-center bg-color-gray-200">
+        <Spinner />
+      </div>
+    );
   return (
     <div className=" bg-color-gray-200 p-2 sm:p-6 relative">
       <div className="overflow-hidden">
@@ -188,28 +179,27 @@ export default function EmployeesPage() {
                   User type
                 </div>
               </div>
-
-              {filteredAndSortedEmployees.map((employee) => (
+              {filteredAndSortedEmployees.map((user) => (
                 <div
-                  key={employee.id}
+                  key={user.id}
                   className="border-[1px] border-color-gray-250 mb-4 rounded-[8px]"
                 >
                   <Link
-                    href={`/dashboard/employees/${employee.id}`}
+                    href={`/dashboard/employees/${user.id}`}
                     className="flex flex-wrap sm:grid grid-cols-[minmax(0,1fr),100px,100px] items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer "
                   >
                     <div className="truncate">
-                      {employee.id}
-                      {user?.id === employee.id && " (You)"}
+                      {user.id}
+                      {myUser?.id === user.id && " (You)"}
                     </div>
-                    <div className="text-center">{employee.department}</div>
+                    <div className="text-center">{isRole(user.role)}</div>
                     <div className="flex justify-center">
                       <Badge
                         className={`${getBadgeColor(
-                          employee.type
+                          user.role
                         )} text-white whitespace-nowrap py-2`}
                       >
-                        {employee.type}
+                        {isRole(user.role)}
                       </Badge>
                     </div>
                   </Link>

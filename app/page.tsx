@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,23 +15,36 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useAuth } from "@/contexts/auth-context";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navbar from "@/components/Navbar";
 import LoginTemplate from "@/components/LoginTemplate";
+import { loginUser } from "@/store/slices/authSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({
   idNumber: z.string().min(5, {
     message: "ID Number must be at least 5 characters.",
   }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters.",
+  password: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
   }),
 });
 
 export default function LoginPage() {
-  const { login } = useAuth();
-  const [error, setError] = useState<string>("");
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, loading, error } = useAppSelector(
+    (state) => state.auth
+  );
+
+  useEffect(() => {
+    console.log(isAuthenticated);
+    if (isAuthenticated && !loading) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, loading, router]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,12 +55,9 @@ export default function LoginPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setError("");
-    const result = await login(values.idNumber, values.password);
-    if (!result.success && result.error) {
-      setError(result.error);
-    }
-    // The redirect is now handled in the login function in AuthContext
+    const result = await dispatch(
+      loginUser({ id: values.idNumber, password: values.password })
+    );
   }
 
   return (
@@ -113,7 +122,7 @@ export default function LoginPage() {
                   type="submit"
                   className="rounded-[8px] w-full max-w-sm bg-logoblue hover:bg-logoblue/60 text-white"
                 >
-                  Sign In
+                  Sign In {loading && <Spinner />}
                 </Button>
               </form>
             </Form>
@@ -126,14 +135,14 @@ export default function LoginPage() {
             >
               Register
             </Link> */}
-            <Link href="/" className="block text-logoblue hover:underline">
+            {/* <Link href="/" className="block text-logoblue hover:underline">
               Register
-            </Link>
+            </Link> */}
             <Link
               href="/restore-password"
               className="block text-logoblue hover:underline"
             >
-              Forgot your username or password?
+              Forgot your ID number or password?
             </Link>
           </div>
         </div>

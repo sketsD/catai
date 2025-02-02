@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/contexts/auth-context";
+// import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LogoutModal } from "@/components/logout-modal";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user } = useAppSelector((state) => state.auth);
+
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   return (
@@ -65,7 +67,7 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-sm mb-1">Type</label>
                   <Input
-                    value={user?.type}
+                    value={user?.role}
                     readOnly
                     className="rounded-[8px] border-color-gray-250"
                   />

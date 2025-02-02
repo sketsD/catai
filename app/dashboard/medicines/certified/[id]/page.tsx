@@ -45,6 +45,120 @@ const medicineData = {
     { src: placeholder },
   ],
 };
+// export async function generateStaticParams() {
+//   const medicine = [
+//     {
+//       id: "1",
+//       name: "Cefotaxime Medo",
+//       date: "20/10/24",
+//       groupType: "Pharmacy",
+//       status: "Approved",
+//     },
+//     {
+//       id: "2",
+//       name: "Ibuprofen",
+//       date: "20/10/24",
+//       groupType: "Technical",
+//       status: "Approved",
+//     },
+//     {
+//       id: "3",
+//       name: "Paracetamol",
+//       date: "20/10/24",
+//       groupType: "Technical",
+//       status: "Approved",
+//     },
+//     {
+//       id: "4",
+//       name: "Metformin",
+//       date: "19/10/24",
+//       groupType: "Pharmacy",
+//       status: "Approved",
+//     },
+//     {
+//       id: "5",
+//       name: "Omeprazole",
+//       date: "18/10/24",
+//       groupType: "Pharmacy",
+//       status: "Approved",
+//     },
+//     {
+//       id: "6",
+//       name: "Doxycycline",
+//       date: "17/10/24",
+//       groupType: "Technical",
+//       status: "Approved",
+//     },
+//     {
+//       id: "7",
+//       name: "Amoxicillin",
+//       date: "20/10/24",
+//       groupType: "Pharmacy",
+//       status: "Approved",
+//     },
+//     {
+//       id: "8",
+//       name: "Aspirin",
+//       date: "20/10/24",
+//       groupType: "Technical",
+//       status: "Approved",
+//     },
+//     {
+//       id: "9",
+//       name: "Lisinopril",
+//       date: "19/10/24",
+//       groupType: "Pharmacy",
+//       status: "Approved",
+//     },
+//     {
+//       id: "10",
+//       name: "Simvastatin",
+//       date: "19/10/24",
+//       groupType: "Technical",
+//       status: "Approved",
+//     },
+//     {
+//       id: "11",
+//       name: "Metoprolol",
+//       date: "18/10/24",
+//       groupType: "Pharmacy",
+//       status: "Approved",
+//     },
+//     {
+//       id: "12",
+//       name: "Amlodipine",
+//       date: "18/10/24",
+//       groupType: "Technical",
+//       status: "Approved",
+//     },
+//     {
+//       id: "13",
+//       name: "Gabapentin",
+//       date: "17/10/24",
+//       groupType: "Pharmacy",
+//       status: "Approved",
+//     },
+//     {
+//       id: "14",
+//       name: "Sertraline",
+//       date: "17/10/24",
+//       groupType: "Technical",
+//       status: "Approved",
+//     },
+//     {
+//       id: "15",
+//       name: "Fluoxetine",
+//       date: "16/10/24",
+//       groupType: "Pharmacy",
+//       status: "Approved",
+//     },
+//   ];
+//   const ids = medicine.map((item) => ({
+//     params: { id: item.id },
+//   }));
+//   console.log(ids);
+//   return ids;
+// }
 
 const remarks = [
   {

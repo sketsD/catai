@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -12,18 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-// In a real app, this would come from an API
-const getEmployee = (id: string) => {
-  return {
-    id: "123456789",
-    name: "Serge",
-    surname: "Stone",
-    email: "stone@mail.com",
-    type: "Admin",
-    department: "Department",
-  };
-};
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { Spinner } from "@/components/ui/spinner";
+import { deleteCurrentUser, getCurrentUser } from "@/store/slices/userSlice";
 
 export default function EmployeeDetailPage({
   params,
@@ -32,14 +23,35 @@ export default function EmployeeDetailPage({
 }) {
   const router = useRouter();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const employee = getEmployee(params.id);
+  // const employee = getEmployee(params.id);
+
+  const { status, error, currentUser, loading } = useAppSelector(
+    (state) => state.user
+  );
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(getCurrentUser({ id: params.id }));
+    console.log(currentUser);
+  }, []);
 
   const handleDelete = () => {
     // Here you would delete the employee
+    dispatch(deleteCurrentUser({ id: params.id }));
     setShowDeleteModal(false);
     router.push("/dashboard/employees");
   };
 
+  if (loading)
+    return (
+      <div className="flex items-center justify-center w-full min-h-[calc(100vh-3rem)] bg-color-gray-200 p-2 sm:p-6">
+        <Spinner />
+      </div>
+    );
+  // if (currentUser === "" || error || status === "error") {
+  //   <div className="flex items-center justify-center w-full min-h-[calc(100vh-3rem)] bg-color-gray-200 p-2 sm:p-6">
+  //     Can't load user's data
+  //   </div>;
+  // }
   return (
     <div className="min-h-screen bg-color-gray-200 p-2 sm:p-6">
       <div className="flex flex-col gap-6 min-h-[calc(100vh-3rem)] overflow-y-auto bg-white border-[1px] border-color-gray-250 rounded-[8px]">
@@ -55,7 +67,7 @@ export default function EmployeeDetailPage({
           </div>
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">
-              {employee.type} Profile #{employee.id}
+              {currentUser.role} Profile #{currentUser.id}
             </h1>
 
             <Button
@@ -73,7 +85,7 @@ export default function EmployeeDetailPage({
                 <div>
                   <label className="block text-sm mb-1">Name</label>
                   <Input
-                    value={employee.name}
+                    value={currentUser.firstname}
                     readOnly
                     className="rounded-[8px] border-color-gray-250"
                   />
@@ -81,7 +93,7 @@ export default function EmployeeDetailPage({
                 <div>
                   <label className="block text-sm mb-1">Surname</label>
                   <Input
-                    value={employee.surname}
+                    value={currentUser.surname}
                     readOnly
                     className="rounded-[8px] border-color-gray-250"
                   />
@@ -89,7 +101,7 @@ export default function EmployeeDetailPage({
                 <div>
                   <label className="block text-sm mb-1">ID</label>
                   <Input
-                    value={employee.id}
+                    value={currentUser.id}
                     readOnly
                     className="rounded-[8px] border-color-gray-250"
                   />
@@ -97,7 +109,7 @@ export default function EmployeeDetailPage({
                 <div>
                   <label className="block text-sm mb-1">Type</label>
                   <Input
-                    value={employee.type}
+                    value={currentUser.role}
                     readOnly
                     className="rounded-[8px] border-color-gray-250"
                   />
@@ -105,7 +117,7 @@ export default function EmployeeDetailPage({
                 <div>
                   <label className="block text-sm mb-1">Department</label>
                   <Input
-                    value={employee.department}
+                    value={currentUser.department}
                     readOnly
                     className="rounded-[8px] border-color-gray-250"
                   />
@@ -119,7 +131,7 @@ export default function EmployeeDetailPage({
                 <div>
                   <label className="block text-sm mb-1">Email</label>
                   <Input
-                    value={employee.email}
+                    value={currentUser.email}
                     readOnly
                     className="rounded-[8px] border-color-gray-250"
                   />
