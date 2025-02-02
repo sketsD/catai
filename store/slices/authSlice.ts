@@ -10,37 +10,27 @@ import Cookies from "js-cookie";
 import { authService } from "@/utils/authService";
 
 const initialState: AuthState = {
+  userid: null,
   token: Cookies.get("auth-token") || null,
   status: "idle",
-  user: null,
   loading: false,
   error: null,
   isAuthenticated: false,
 };
 
 export const loginUser = createAsyncThunk<
-  User,
+  { id: string },
   LoginCredentials,
   { rejectValue: string }
 >("auth/login", async ({ id, password }, { rejectWithValue }) => {
   try {
     const response = await authService.login({ id, password });
+    console.log(response.data.access_token);
     Cookies.set("auth-token", response.data.access_token, {
       expires: 7,
       secure: true,
     });
-
-    // Данные пользователя должны приходить с сервера
-    const user: User = {
-      id,
-      firstname: "John",
-      surname: "Doe",
-      email: "john@example.com",
-      role: "admin",
-      created_at: "2727",
-      updated_at: "338383",
-    };
-    return user;
+    return { id };
   } catch (error: any) {
     console.log(error);
     return rejectWithValue(error?.message || "Login failed");
@@ -100,7 +90,7 @@ const authSlice = createSlice({
   reducers: {
     logout: (state) => {
       state.token = null;
-      state.user = null;
+      state.userid = null;
       state.isAuthenticated = false;
       Cookies.remove("auth-token");
     },
@@ -118,7 +108,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
+        state.userid = action.payload.id;
         state.isAuthenticated = true;
         state.error = null;
       })
@@ -144,22 +134,6 @@ const authSlice = createSlice({
         console.log(action);
         state.error = action.payload || "Registration failed";
       });
-    // Fetch Current User
-    // .addCase(fetchCurrentUser.pending, (state) => {
-    //   state.loading = true;
-    //   state.error = null;
-    // })
-    // .addCase(fetchCurrentUser.fulfilled, (state, action) => {
-    //   state.loading = false;
-    //   state.user = action.payload;
-    //   state.isAuthenticated = true;
-    //   state.error = null;
-    // })
-    // .addCase(fetchCurrentUser.rejected, (state, action) => {
-    //   state.loading = false;
-    //   state.error = action.payload || "Failed to fetch user";
-    //   state.isAuthenticated = false;
-    // });
   },
 });
 

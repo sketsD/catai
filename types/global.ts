@@ -1,3 +1,5 @@
+import { string } from "zod";
+
 export interface ApiError {
   message: string;
   code?: string;
@@ -31,8 +33,8 @@ export interface State {
 }
 
 export interface AuthState extends State {
+  userid: string | null;
   token: string | null;
-  user: User | null;
   isAuthenticated: boolean;
 }
 
@@ -55,7 +57,7 @@ export interface RegisterCredentials extends RegisterSliceCredentials {
 
 export interface UserState extends State {
   users: Array<User>;
-  currentUser: UserNoPass | "";
+  currentUser: UserNoPass | null;
 }
 
 export interface UserNoPass {
@@ -64,4 +66,23 @@ export interface UserNoPass {
   surname: string;
   email: string;
   role: "admin" | "tech" | "pharm";
+}
+
+export interface Medicine {
+  metadata_id: string | null;
+  product_name: string | null;
+  product_dosage: string | null;
+  intake_method: string | null;
+  category: string | null;
+  manufacturer: string | null;
+  type_packaging: string | null;
+  product_name_generic: string | null;
+  product_active_ingredient: string | null;
+  manufacturing_country: string | null;
+  country_registration: string | null;
+  status: "pending" | "decilne" | "approved" | null;
+}
+
+export interface MedicineState extends State {
+  medicines: Array<Medicine> | [];
 }

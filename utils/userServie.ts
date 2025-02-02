@@ -14,4 +14,8 @@ export const userService = {
   //   Path to be changed
   deleteCurrentUser: ({ token, id }: TokenId) =>
     api.delete(`/users/${id}?jwt_token=${token}`),
+  updateCurrentUser: ({ token, id }: TokenId, credentials: UserNoPass) =>
+    api.put(`/users/${id}?jwt_token=${token}`, credentials),
 };
+
+// /users/sdsdsd?jwt_token=sddsds'

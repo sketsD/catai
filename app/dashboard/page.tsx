@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/popover";
 import Link from "next/link";
 import SortIcon from "@/components/SortIcon";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { getAllMedicine } from "@/store/slices/medicineSlice";
 
 // Mock data - would come from API in real app
 const waitingMedicines = [
@@ -210,11 +212,11 @@ const getGroupTypeBadgeColor = (type: string) => {
 
 const getStatusBadgeStyle = (status: string) => {
   switch (status) {
-    case "Approved":
+    case "approved":
       return "bg-[#cff7d3] text-[#14ae5c] border-[#cff7d3]";
-    case "Pending":
+    case "pending":
       return "bg-[#fdd3d0] text-[#ec221f] border-[#fdd3d0]";
-    case "Decline":
+    case "decline":
       return "bg-[#ddc3ff] text-[#7307ff] border-[#ddc3ff]";
     default:
       return "bg-gray-100 text-gray-500 border-gray-200";
@@ -236,43 +238,47 @@ export default function DashboardPage() {
     },
   });
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
+  const { medicines: allMedicnes } = useAppSelector((state) => state.medicine);
+  const dispatch = useAppDispatch();
+  const waitingMedicines = allMedicnes.filter(
+    (medicine) => medicine.status === "pending"
+  );
+  const certifiedMedicines = allMedicnes.filter(
+    (medicine) => medicine.status !== "pending"
+  );
   const medicines =
     activeTab === "waiting" ? waitingMedicines : certifiedMedicines;
-
-  // useEffect(() => {
-  //   const fetchUpdatedMedicines = async () => {
-  //     // Fetch updated data and update state
-  //     // setMedicines(updatedData)
-  //   }
-  //   fetchUpdatedMedicines()
-  // }, [])
+  // const {medicines} =
+  useEffect(() => {
+    dispatch(getAllMedicine());
+  }, []);
 
   // Filter and sort medicines
-  const filteredMedicines = medicines
-    .filter((medicine) => {
-      const matchesSearch = medicine.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+  const filteredMedicines = medicines.filter((medicine) => {
+    const matchesSearch = medicine.product_name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
 
-      // Apply group type filter
-      const matchesGroupType =
-        filters.groupType.all ||
-        (filters.groupType.technical && medicine.groupType === "Technical") ||
-        (filters.groupType.pharmacy && medicine.groupType === "Pharmacy");
+    // Apply group type filter
+    const matchesGroupType =
+      filters.groupType.all ||
+      (filters.groupType.technical && medicine.category === "technical") ||
+      (filters.groupType.pharmacy && medicine.category === "pharmacy");
 
-      // Apply date filter (simplified for demo)
-      const matchesDate = filters.date.oneDay
-        ? medicine.date >= "20/10/24"
-        : medicine.date < "20/10/24";
+    // Apply date filter (simplified for demo)
+    // const matchesDate = filters.date.oneDay
+    //   ? medicine.date >= "20/10/24"
+    //   : medicine.date < "20/10/24";
 
-      return matchesSearch && matchesGroupType && matchesDate;
-    })
-    .sort((a, b) => {
-      if (sortOrder === "new") {
-        return b.date.localeCompare(a.date);
-      }
-      return a.date.localeCompare(b.date);
-    });
+    return matchesSearch && matchesGroupType;
+    // return matchesSearch && matchesGroupType && matchesDate;
+  });
+  // .sort((a, b) => {
+  //   if (sortOrder === "new") {
+  //     return b.date.localeCompare(a.date);
+  //   }
+  //   return a.date.localeCompare(b.date);
+  // });
 
   return (
     <div className="min-h-screen bg-color-gray-200 p-2 sm:p-6">
@@ -386,13 +392,13 @@ export default function DashboardPage() {
               {filteredMedicines.map((medicine) => (
                 <div
                   className="border-[1px] border-color-gray-250 mb-4 rounded-[8px]"
-                  key={medicine.name}
+                  key={medicine.metadata_id}
                 >
                   <Link
                     href={
-                      medicine.status === "Approved"
-                        ? `/dashboard/medicines/certified/${medicine.id}`
-                        : `/dashboard/medicines/${medicine.id}`
+                      medicine.status === "approved"
+                        ? `/dashboard/medicines/certified/${medicine.metadata_id}`
+                        : `/dashboard/medicines/${medicine.metadata_id}`
                     }
                     className={`flex flex-wrap sm:grid ${
                       activeTab === "waiting"
@@ -400,17 +406,18 @@ export default function DashboardPage() {
                         : "grid-cols-[minmax(0,1fr),100px,100px]"
                     } items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer`}
                   >
-                    <div className="truncate">{medicine.name}</div>
+                    <div className="truncate">{medicine.product_name}</div>
 
-                    <div className="text-center">{medicine.date}</div>
+                    <div className="text-center">27/09/2024</div>
+                    {/* <div className="text-center">{medicine.date}</div> */}
                     {activeTab === "waiting" && (
                       <div className="flex justify-center">
                         <Badge
                           className={`${getGroupTypeBadgeColor(
-                            medicine.groupType
+                            medicine.category
                           )} text-white whitespace-nowrap py-2`}
                         >
-                          {medicine.groupType}
+                          {medicine.category}
                         </Badge>
                       </div>
                     )}

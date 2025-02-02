@@ -1,16 +1,31 @@
 "use client";
 
-import { useState } from "react";
-// import { useAuth } from "@/contexts/auth-context";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LogoutModal } from "@/components/logout-modal";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { getCurrentUser } from "@/store/slices/userSlice";
 
 export default function ProfilePage() {
-  const { user } = useAppSelector((state) => state.auth);
+  const {
+    currentUser: user,
+    status,
+    error,
+    loading,
+  } = useAppSelector((state) => state.user);
+  const { userid } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (userid) {
+      dispatch(getCurrentUser({ id: userid }));
+    }
+    console.log("This is current user");
+    console.log(user);
+  }, []);
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 

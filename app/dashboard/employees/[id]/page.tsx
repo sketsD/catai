@@ -31,6 +31,7 @@ export default function EmployeeDetailPage({
   const dispatch = useAppDispatch();
   useEffect(() => {
     dispatch(getCurrentUser({ id: params.id }));
+    console.log("This is current user");
     console.log(currentUser);
   }, []);
 
