@@ -4,6 +4,7 @@ import { medicineService } from "@/utils/medicineService";
 import { compareAsc, compareDesc, parseISO } from "date-fns";
 import { FilterState } from "@/components/filter-dialog";
 import { RootState } from "../store";
+import { getLocalStorage } from '@/utils/localStorage';
 
 const initialState: MedicineState = {
   status: "idle",
@@ -20,7 +21,7 @@ export const getMedicineByStatus = createAsyncThunk<
 >("medicine/getMedicineByStatus", async (status, { rejectWithValue }) => {
   try {
     console.log("[Redux] Starting getMedicineByStatus thunk with status:", status);
-    const token = localStorage.getItem("auth-token");
+    const token = getLocalStorage("auth-token");
     if (!token) {
       console.error("[Redux] Token is not provided in getMedicineByStatus");
       throw new Error("Token is not provided");
@@ -44,7 +45,7 @@ export const getMedicineByName = createAsyncThunk<
 >("medicine/getMedicineByName", async (name, { rejectWithValue }) => {
   try {
     console.log("[Redux] Starting getMedicineByName thunk with name:", name);
-    const token = localStorage.getItem("auth-token");
+    const token = getLocalStorage("auth-token");
     if (!token) {
       console.error("[Redux] Token is not provided in getMedicineByName");
       throw new Error("Token is not provided");

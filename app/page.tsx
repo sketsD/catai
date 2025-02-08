@@ -39,20 +39,22 @@ function AuthCheck({ children }: { children: React.ReactNode }) {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   useEffect(() => {
-    const checkAuthentication = async () => {
-      dispatch(initializeFromStorage());
-      try {
-        await dispatch(checkAuth()).unwrap();
-        router.replace("/dashboard");
-      } catch {
-        setIsAuthChecked(true);
-      }
-    };
-    
-    checkAuthentication();
+    if (typeof window !== 'undefined') {
+      const checkAuthentication = async () => {
+        dispatch(initializeFromStorage());
+        try {
+          await dispatch(checkAuth()).unwrap();
+          router.replace("/dashboard");
+        } catch {
+          setIsAuthChecked(true);
+        }
+      };
+      
+      checkAuthentication();
+    }
   }, [dispatch, router]);
 
-  if (!isAuthChecked) {
+  if (typeof window === 'undefined' || !isAuthChecked) {
     return <div style={{ display: 'none' }} />;
   }
 

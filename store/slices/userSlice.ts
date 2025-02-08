@@ -1,8 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { User, UserNoPass, UserState } from "@/types/global";
 import { userService } from "@/utils/userServie";
+import { getLocalStorage } from '@/utils/localStorage';
 
-const token = localStorage.getItem("auth-token");
+const token = getLocalStorage("auth-token");
 const initialState: UserState = {
   status: "idle",
   loading: false,
@@ -18,7 +19,7 @@ export const getAllUsers = createAsyncThunk<
   { rejectValue: string }
 >("user/getAllUsers", async (_, { rejectWithValue }) => {
   try {
-    const token = localStorage.getItem("auth-token");
+    const token = getLocalStorage("auth-token");
     if (!token) throw new Error("Token is not provided");
     const response = await userService.getUsers(token);
     console.log(response);

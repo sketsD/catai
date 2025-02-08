@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { getPublicS3Url } from "@/utils/s3Utils";
 import { ImagePreviewModal } from "@/components/image-preview-modal";
+import { getLocalStorage } from '@/utils/localStorage';
 
 // Mock data - would come from API in real app
 // const initialMedicineData = {
@@ -215,7 +216,7 @@ export default function MedicineDetailPage({
 
   const fetchLASAAnalysis = useCallback(async () => {
     try {
-      const token = localStorage.getItem("auth-token");
+      const token = getLocalStorage("auth-token");
       if (!token || !params.id) return;
 
       setLasaLoading(true);
@@ -268,7 +269,7 @@ export default function MedicineDetailPage({
 
   const handleDecline = async (reason: string) => {
     try {
-      const token = localStorage.getItem("auth-token");
+      const token = getLocalStorage("auth-token");
       if (!token) {
         throw new Error("No authentication token found");
       }
@@ -309,7 +310,7 @@ export default function MedicineDetailPage({
 
   const handleApprove = async () => {
     try {
-      const token = localStorage.getItem("auth-token");
+      const token = getLocalStorage("auth-token");
       if (!token) {
         throw new Error("No authentication token found");
       }
@@ -363,7 +364,7 @@ export default function MedicineDetailPage({
     if (!editedData || !data) return;
 
     try {
-      const token = localStorage.getItem("auth-token");
+      const token = getLocalStorage("auth-token");
       if (!token) {
         throw new Error("No authentication token found");
       }

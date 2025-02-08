@@ -7,6 +7,7 @@ import type {
   RegisterSliceCredentials,
 } from "@/types/global";
 import { authService } from "@/utils/authService";
+import { getLocalStorage, setLocalStorage, removeLocalStorage } from '@/utils/localStorage';
 
 // Начальное состояние без данных из localStorage
 const initialState: AuthState = {
@@ -22,8 +23,8 @@ const initialState: AuthState = {
 export const initializeAuthState = () => {
   if (typeof window === 'undefined') return initialState;
   
-  const token = localStorage.getItem('auth-token');
-  const userid = localStorage.getItem('user-id');
+  const token = getLocalStorage('auth-token');
+  const userid = getLocalStorage('user-id');
   
   return {
     ...initialState,
@@ -38,8 +39,8 @@ export const checkAuth = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     if (typeof window === 'undefined') return rejectWithValue('Not in browser');
     
-    const token = localStorage.getItem('auth-token');
-    const userid = localStorage.getItem('user-id');
+    const token = getLocalStorage('auth-token');
+    const userid = getLocalStorage('user-id');
     
     if (!token || !userid) {
       return rejectWithValue('No auth data');
@@ -59,8 +60,8 @@ export const loginUser = createAsyncThunk<
     
     console.log('auth-token', token);
     console.log('user-id', id);
-    localStorage.setItem('auth-token', token);
-    localStorage.setItem('user-id', id);
+    setLocalStorage('auth-token', token);
+    setLocalStorage('user-id', id);
     
     return { id, token };
   } catch (error: any) {
@@ -76,7 +77,7 @@ export const registerUser = createAsyncThunk<
 >("auth/register", async (credentials, { rejectWithValue }) => {
   try {
     const now = new Date().toISOString();
-    const token = localStorage.getItem('auth-token');
+    const token = getLocalStorage('auth-token');
     if (!token) throw new Error("Token is not provided");
     await authService.registerNewUser(
       {
@@ -99,10 +100,8 @@ const authSlice = createSlice({
       state.token = null;
       state.userid = null;
       state.isAuthenticated = false;
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth-token');
-        localStorage.removeItem('user-id');
-      }
+      removeLocalStorage('auth-token');
+      removeLocalStorage('user-id');
     },
     clearError: (state) => {
       state.error = null;
