@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/authSlice";
+import { useRouter } from "next/navigation";
 
 interface LogoutModalProps {
   isOpen: boolean;
@@ -17,10 +18,12 @@ interface LogoutModalProps {
 
 export function LogoutModal({ isOpen, onClose }: LogoutModalProps) {
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const handleLogout = () => {
     dispatch(logout());
     onClose();
+    router.replace("/");
   };
 
   return (
