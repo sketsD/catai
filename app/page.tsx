@@ -54,6 +54,12 @@ function AuthCheck({ children }: { children: React.ReactNode }) {
     }
   }, [dispatch, router]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, router]);
+
   if (typeof window === 'undefined' || !isAuthChecked) {
     return <div style={{ display: 'none' }} />;
   }
@@ -66,12 +72,6 @@ function LoginPageContent() {
   const router = useRouter();
   const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.replace("/dashboard");
-    }
-  }, [isAuthenticated, router]);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -81,9 +81,12 @@ function LoginPageContent() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await dispatch(
-      loginUser({ id: values.idNumber, password: values.password })
-    );
+    try {
+      await dispatch(loginUser({ id: values.idNumber, password: values.password })).unwrap();
+      router.replace("/dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   }
 
   return (
