@@ -6,31 +6,63 @@ import type {
   LoginCredentials,
   RegisterSliceCredentials,
 } from "@/types/global";
-import Cookies from "js-cookie";
 import { authService } from "@/utils/authService";
 
+// Начальное состояние без данных из localStorage
 const initialState: AuthState = {
   userid: null,
-  token: Cookies.get("auth-token") || null,
+  token: null,
   status: "idle",
   loading: false,
   error: null,
   isAuthenticated: false,
 };
 
+// Функция для инициализации стейта на клиенте
+export const initializeAuthState = () => {
+  if (typeof window === 'undefined') return initialState;
+  
+  const token = localStorage.getItem('auth-token');
+  const userid = localStorage.getItem('user-id');
+  
+  return {
+    ...initialState,
+    token,
+    userid,
+    isAuthenticated: !!token
+  };
+};
+
+export const checkAuth = createAsyncThunk(
+  'auth/check',
+  async (_, { rejectWithValue }) => {
+    if (typeof window === 'undefined') return rejectWithValue('Not in browser');
+    
+    const token = localStorage.getItem('auth-token');
+    const userid = localStorage.getItem('user-id');
+    
+    if (!token || !userid) {
+      return rejectWithValue('No auth data');
+    }
+    return { token, userid };
+  }
+);
+
 export const loginUser = createAsyncThunk<
-  { id: string },
+  { id: string; token: string },
   LoginCredentials,
   { rejectValue: string }
 >("auth/login", async ({ id, password }, { rejectWithValue }) => {
   try {
     const response = await authService.login({ id, password });
-    console.log(response.data.access_token);
-    Cookies.set("auth-token", response.data.access_token, {
-      expires: 7,
-      secure: true,
-    });
-    return { id };
+    const token = response.data.access_token;
+    
+    console.log('auth-token', token);
+    console.log('user-id', id);
+    localStorage.setItem('auth-token', token);
+    localStorage.setItem('user-id', id);
+    
+    return { id, token };
   } catch (error: any) {
     console.log(error);
     return rejectWithValue(error?.message || "Login failed");
@@ -44,7 +76,7 @@ export const registerUser = createAsyncThunk<
 >("auth/register", async (credentials, { rejectWithValue }) => {
   try {
     const now = new Date().toISOString();
-    const token = Cookies.get("auth-token");
+    const token = localStorage.getItem('auth-token');
     if (!token) throw new Error("Token is not provided");
     await authService.registerNewUser(
       {
@@ -67,12 +99,22 @@ const authSlice = createSlice({
       state.token = null;
       state.userid = null;
       state.isAuthenticated = false;
-      Cookies.remove("auth-token");
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth-token');
+        localStorage.removeItem('user-id');
+      }
     },
     clearError: (state) => {
       state.error = null;
       state.status = "idle";
     },
+    // Добавляем редюсер для инициализации стейта на клиенте
+    initializeFromStorage: (state) => {
+      const newState = initializeAuthState();
+      state.token = newState.token;
+      state.userid = newState.userid;
+      state.isAuthenticated = newState.isAuthenticated;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -83,6 +125,7 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.userid = action.payload.id;
+        state.token = action.payload.token;
         state.isAuthenticated = true;
         state.error = null;
       })
@@ -104,9 +147,19 @@ const authSlice = createSlice({
         state.loading = false;
         state.status = "error";
         state.error = action.payload || "Registration failed";
+      })
+      .addCase(checkAuth.fulfilled, (state, action) => {
+        state.token = action.payload.token;
+        state.userid = action.payload.userid;
+        state.isAuthenticated = true;
+      })
+      .addCase(checkAuth.rejected, (state) => {
+        state.token = null;
+        state.userid = null;
+        state.isAuthenticated = false;
       });
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, initializeFromStorage } = authSlice.actions;
 export default authSlice.reducer;

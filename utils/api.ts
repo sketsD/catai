@@ -20,7 +20,6 @@ api.interceptors.response.use(
     return Promise.reject(apiError);
   }
 );
-
 // Добавляем перехватчик для добавления токена
 // api.interceptors.request.use(
 //   (config) => {
@@ -32,3 +31,4 @@ api.interceptors.response.use(
 //   },
 //   (error) => Promise.reject(error)
 // );
+

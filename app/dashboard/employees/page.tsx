@@ -18,6 +18,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Spinner } from "@/components/ui/spinner";
 import { getAllUsers, clearError } from "@/store/slices/userSlice";
 import { isRole } from "@/utils/helpers";
+import { useRouter } from "next/navigation";
 
 const getBadgeColor = (role: string) => {
   switch (role) {
@@ -41,6 +42,7 @@ export default function EmployeesPage() {
     return state.user;
   });
   const { userid } = useAppSelector((state) => state.auth);
+  const router = useRouter();
 
   useEffect(() => {
     console.log(status + " mount employees + id");
@@ -103,13 +105,13 @@ export default function EmployeesPage() {
         <div className="">
           <div className="flex flex-col p-2 sm:p-6 min-h-[calc(100vh-3rem)] overflow-y-auto bg-white border-[1px] border-color-gray-250 rounded-b-[8px] rounded-tr-[8px] ">
             <div className="">
-              <Link
-                href="/dashboard/profile"
+              <button
+                onClick={() => router.back()}
                 className="inline-flex items-center text-logoblue hover:underline"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
-              </Link>
+              </button>
             </div>
             <div className="flex flex-col lg:flex-row justify-between justify-startlg: items-start lg:items-center gap-4">
               <h1 className="text-2xl font-semibold text-nowrap">
@@ -168,12 +170,9 @@ export default function EmployeesPage() {
             </div>
 
             <div className="">
-              <div className="hidden sm:grid sm:grid-cols-[1fr,100px,100px] items-center gap-4 p-4">
-                <div className="font-medium text-color-gray-400">ID</div>
-                <div className="font-medium text-center text-color-gray-400">
-                  Department
-                </div>
-                <div className="font-medium text-center text-color-gray-400">
+              <div className="hidden sm:grid sm:grid-cols-[1fr,100px] items-center gap-4 p-4">
+                <div className="font-medium text-color-gray-400">ID / Full Name</div>
+                <div className="font-medium text-center text-color-gray-400 text-right">
                   User type
                 </div>
               </div>
@@ -188,14 +187,13 @@ export default function EmployeesPage() {
                         ? "/dashboard/profile"
                         : `/dashboard/employees/${user.id}`
                     }
-                    className="flex flex-wrap sm:grid grid-cols-[minmax(0,1fr),100px,100px] items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer "
+                    className="flex flex-wrap sm:grid grid-cols-[minmax(0,1fr),100px] items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer "
                   >
-                    <div className="truncate">
-                      {user.id}
-                      {userid === user.id && " (You)"}
+                    <div>
+                      <div className="truncate text-gray-600 text-sm">{user.id}</div>
+                      <div className="truncate font-medium">{user.firstname} {user.surname}{userid === user.id && " (You)"}</div>
                     </div>
-                    <div className="text-center">{isRole(user.role)}</div>
-                    <div className="flex justify-center">
+                    <div className="flex justify-end">
                       <Badge
                         className={`${getBadgeColor(
                           user.role

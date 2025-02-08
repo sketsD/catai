@@ -11,6 +11,7 @@ import { clearError, getCurrentUser } from "@/store/slices/userSlice";
 import { Spinner } from "@/components/ui/spinner";
 import { UpdateAccountModal } from "@/components/update-account-modal";
 import { current } from "@reduxjs/toolkit";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const [showUpdateModal, setUpdateModal] = useState<boolean>(false);
@@ -24,6 +25,7 @@ export default function ProfilePage() {
   } = useAppSelector((state) => state.user);
   const { userid } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   useEffect(() => {
     if (!loading && userid) {
@@ -53,13 +55,13 @@ export default function ProfilePage() {
       <div className="flex flex-col gap-6 min-h-[calc(100vh-3rem)] overflow-y-auto bg-white border-[1px] border-color-gray-250 rounded-[8px]">
         <div className="p-6">
           <div className="">
-            <Link
-              href="/dashboard/employees"
+            <button
+              onClick={() => router.back()}
               className="inline-flex items-center text-logoblue hover:underline"
             >
               <ArrowLeft className="w-4 h-4 mr-2" color="#0165FC" />
               Back
-            </Link>
+            </button>
           </div>
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Profile</h1>
@@ -67,7 +69,7 @@ export default function ProfilePage() {
               onClick={() => setShowLogoutModal(true)}
               className="hidden md:block rounded-[8px] bg-logoblue hover:bg-blue-700 text-white"
             >
-              Log Off
+              Log Out
             </Button>
           </div>
           <div className="w-full xl:w-1/2 grid md:grid-cols-2 gap-8">
@@ -139,7 +141,7 @@ export default function ProfilePage() {
                   onClick={() => setShowLogoutModal(true)}
                   className="w-full md:hidden rounded-[8px] bg-logoblue hover:bg-blue-700 text-white"
                 >
-                  Log Off
+                  Log Out
                 </Button>
               </div>
             </section>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Star } from "lucide-react";
@@ -20,145 +20,13 @@ import FilterIcon from "@/components/FilterIcon";
 import StarIcon from "@/components/StarIcon";
 import Pharmacist from "@/components/Pharmacist";
 import ClockIcon from "@/components/ClockIcon";
-
-// Mock data - would come from API in real app
-const medicineData = {
-  id: "123456789",
-  name: "Cefotaxime Medo",
-  status: "Approved",
-  category: "Ampoules",
-  intakeMethod: "IM;IV",
-  catalogNumber: "7290015842006",
-  logistic: "135A678",
-  manufacturedCountry: "Cyprus",
-  registrationCountry: "Israel",
-  quantity: "-",
-  images: [
-    { src: placeholder },
-    { src: placeholder },
-    { src: placeholder },
-    { src: placeholder },
-    { src: placeholder },
-    { src: placeholder },
-    { src: placeholder },
-    { src: placeholder },
-    { src: placeholder },
-  ],
-};
-// export async function generateStaticParams() {
-//   const medicine = [
-//     {
-//       id: "1",
-//       name: "Cefotaxime Medo",
-//       date: "20/10/24",
-//       groupType: "Pharmacy",
-//       status: "Approved",
-//     },
-//     {
-//       id: "2",
-//       name: "Ibuprofen",
-//       date: "20/10/24",
-//       groupType: "Technical",
-//       status: "Approved",
-//     },
-//     {
-//       id: "3",
-//       name: "Paracetamol",
-//       date: "20/10/24",
-//       groupType: "Technical",
-//       status: "Approved",
-//     },
-//     {
-//       id: "4",
-//       name: "Metformin",
-//       date: "19/10/24",
-//       groupType: "Pharmacy",
-//       status: "Approved",
-//     },
-//     {
-//       id: "5",
-//       name: "Omeprazole",
-//       date: "18/10/24",
-//       groupType: "Pharmacy",
-//       status: "Approved",
-//     },
-//     {
-//       id: "6",
-//       name: "Doxycycline",
-//       date: "17/10/24",
-//       groupType: "Technical",
-//       status: "Approved",
-//     },
-//     {
-//       id: "7",
-//       name: "Amoxicillin",
-//       date: "20/10/24",
-//       groupType: "Pharmacy",
-//       status: "Approved",
-//     },
-//     {
-//       id: "8",
-//       name: "Aspirin",
-//       date: "20/10/24",
-//       groupType: "Technical",
-//       status: "Approved",
-//     },
-//     {
-//       id: "9",
-//       name: "Lisinopril",
-//       date: "19/10/24",
-//       groupType: "Pharmacy",
-//       status: "Approved",
-//     },
-//     {
-//       id: "10",
-//       name: "Simvastatin",
-//       date: "19/10/24",
-//       groupType: "Technical",
-//       status: "Approved",
-//     },
-//     {
-//       id: "11",
-//       name: "Metoprolol",
-//       date: "18/10/24",
-//       groupType: "Pharmacy",
-//       status: "Approved",
-//     },
-//     {
-//       id: "12",
-//       name: "Amlodipine",
-//       date: "18/10/24",
-//       groupType: "Technical",
-//       status: "Approved",
-//     },
-//     {
-//       id: "13",
-//       name: "Gabapentin",
-//       date: "17/10/24",
-//       groupType: "Pharmacy",
-//       status: "Approved",
-//     },
-//     {
-//       id: "14",
-//       name: "Sertraline",
-//       date: "17/10/24",
-//       groupType: "Technical",
-//       status: "Approved",
-//     },
-//     {
-//       id: "15",
-//       name: "Fluoxetine",
-//       date: "16/10/24",
-//       groupType: "Pharmacy",
-//       status: "Approved",
-//     },
-//   ];
-//   const ids = medicine.map((item) => ({
-//     params: { id: item.id },
-//   }));
-//   console.log(ids);
-//   return ids;
-// }
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { getMedicineByName } from "@/store/slices/medicineSlice";
+import { Medicine } from "@/types/global";
+import { Spinner } from "@/components/ui/spinner";
+import { useRouter } from "next/navigation";
+import { getPublicS3Url } from "@/utils/s3Utils";
+import { ImagePreviewModal } from "@/components/image-preview-modal";
 
 const remarks = [
   {
@@ -184,14 +52,59 @@ const remarks = [
   },
 ];
 
-export default function CertifiedMedicineDetailPage() {
+export default function CertifiedMedicineDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const { error, currentMedicine, loading } = useAppSelector(
+    (state) => state.medicine
+  );
+  const dispatch = useAppDispatch();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("medication");
   const [showAllImages, setShowAllImages] = useState(false);
   const [starredOnly, setStarredOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
-  const imagesToShow = showAllImages
-    ? medicineData.images
-    : medicineData.images.slice(0, 8);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    dispatch(getMedicineByName(params.id));
+  }, [dispatch, params.id]);
+
+  const data = currentMedicine?.at(0);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <p className="text-red-500">{error}</p>
+        <Button onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Medicines
+        </Button>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <p>Medicine not found</p>
+        <Button onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Medicines
+        </Button>
+      </div>
+    );
+  }
 
   const filteredRemarks = remarks
     .filter((remark) => !starredOnly || remark.isStarred)
@@ -209,32 +122,37 @@ export default function CertifiedMedicineDetailPage() {
       <div className="flex flex-col gap-6  overflow-y-auto bg-white border-[1px] border-color-gray-250 rounded-[8px]">
         <div className="p-2 sm:p-6 min-h-[calc(100vh-3rem)]">
           <div className="">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center text-logoblue hover:underline"
+            <Button 
+              variant="link"
+              className="p-0 h-auto text-logoblue hover:underline"
+              onClick={() => router.back()}
             >
               <ArrowLeft className="w-4 h-4 mr-2" color="#0165FC" />
               Back
-            </Link>
+            </Button>
           </div>
           {/* Image Grid */}
           <div className="mb-8">
             <div className="flex flex-wrap gap-6 pt-2 justify-center sm:justify-start">
-              {imagesToShow.map((image, i) => (
+              {(showAllImages
+                ? data.images_location
+                : data.images_location.slice(0, 8)
+              ).map((image, index) => (
                 <div
-                  key={i}
-                  className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-[8px]"
+                  key={index}
+                  className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-[8px] cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setSelectedImage(image)}
                 >
                   <Image
-                    src={image.src || "/placeholder.svg"}
-                    alt={`Medicine ${i + 1}`}
+                    src={getPublicS3Url(image)}
+                    alt={`Medicine ${index + 1}`}
                     fill
                     className="object-cover"
                   />
                 </div>
               ))}
             </div>
-            {medicineData.images.length > 8 && (
+            {data.images_location.length > 8 && (
               <Button
                 variant="link"
                 className="text-logoblue"
@@ -245,6 +163,13 @@ export default function CertifiedMedicineDetailPage() {
             )}
           </div>
 
+          {/* Image Preview Modal */}
+          <ImagePreviewModal
+            isOpen={!!selectedImage}
+            onClose={() => setSelectedImage(null)}
+            imageUrl={selectedImage ? getPublicS3Url(selectedImage) : ""}
+          />
+
           {/* Title and Actions */}
 
           <div className="flex items-center justify-between mb-8 flex-wrap sm:flex-nowrap">
@@ -253,10 +178,10 @@ export default function CertifiedMedicineDetailPage() {
                 variant="outline"
                 className="bg-[#cff7d3] text-[#14ae5c] border-[#cff7d3] whitespace-nowrap py-2"
               >
-                {medicineData.status}
+                {data.status}
               </Badge>
               <h1 className="text-2xl font-semibold text-nowrap mr-2">
-                {medicineData.name}
+                {data.product_name}
               </h1>
             </div>
             <Button
@@ -343,7 +268,7 @@ export default function CertifiedMedicineDetailPage() {
                   <div>
                     <label className="block text-sm mb-1">Product Name</label>
                     <Input
-                      value={medicineData.name}
+                      value={data.product_name || ''}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -351,7 +276,7 @@ export default function CertifiedMedicineDetailPage() {
                   <div>
                     <label className="block text-sm mb-1">Category</label>
                     <Input
-                      value={medicineData.category}
+                      value={data.category || ''}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -359,7 +284,7 @@ export default function CertifiedMedicineDetailPage() {
                   <div>
                     <label className="block text-sm mb-1">Intake Method</label>
                     <Input
-                      value={medicineData.intakeMethod}
+                      value={data.intake_method || ''}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -369,7 +294,7 @@ export default function CertifiedMedicineDetailPage() {
                       Manufactured country
                     </label>
                     <Input
-                      value={medicineData.manufacturedCountry}
+                      value={data.manufacturing_country || ''}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -379,7 +304,7 @@ export default function CertifiedMedicineDetailPage() {
                       Country of registration
                     </label>
                     <Input
-                      value={medicineData.registrationCountry}
+                      value={data.country_registration || ''}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -393,7 +318,7 @@ export default function CertifiedMedicineDetailPage() {
                       Catalog Number / Barcode
                     </label>
                     <Input
-                      value={medicineData.catalogNumber}
+                      value={data.barcode || ''}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -401,25 +326,25 @@ export default function CertifiedMedicineDetailPage() {
                   <div>
                     <label className="block text-sm mb-1">ID</label>
                     <Input
-                      value={medicineData.id}
+                      value={data.metadata_id || ''}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm mb-1">Logistic</label>
+                    <label className="block text-sm mb-1">Manufacturer</label>
                     <Input
-                      value={medicineData.logistic}
+                      value={data.manufacturer || ''}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
                   <div>
                     <label className="block text-sm mb-1">
-                      Quantity in packaging
+                      Type of packaging
                     </label>
                     <Input
-                      value={medicineData.quantity}
+                      value={data.type_packaging || ''}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -558,7 +483,7 @@ export default function CertifiedMedicineDetailPage() {
                     <div>
                       <label className="mb-1.5 block text-sm">Status</label>
                       <Input
-                        value={medicineData.status}
+                        value={data.status}
                         readOnly
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />

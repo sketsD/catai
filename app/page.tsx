@@ -18,7 +18,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navbar from "@/components/Navbar";
 import LoginTemplate from "@/components/LoginTemplate";
-import { loginUser } from "@/store/slices/authSlice";
+import { loginUser, checkAuth, initializeFromStorage } from "@/store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
@@ -32,19 +32,36 @@ const formSchema = z.object({
   }),
 });
 
-export default function LoginPage() {
-  const router = useRouter();
+function AuthCheck({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, loading, error } = useAppSelector(
-    (state) => state.auth
-  );
+  const { isAuthenticated, loading } = useAppSelector((state) => state.auth);
+  const router = useRouter();
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   useEffect(() => {
-    console.log(isAuthenticated);
-    if (isAuthenticated && !loading) {
-      router.replace("/dashboard");
-    }
-  }, [isAuthenticated, loading, router]);
+    const checkAuthentication = async () => {
+      dispatch(initializeFromStorage());
+      try {
+        await dispatch(checkAuth()).unwrap();
+        router.replace("/dashboard");
+      } catch {
+        setIsAuthChecked(true);
+      }
+    };
+    
+    checkAuthentication();
+  }, [dispatch, router]);
+
+  if (!isAuthChecked) {
+    return <div style={{ display: 'none' }} />;
+  }
+
+  return !isAuthenticated ? children : null;
+}
+
+function LoginPageContent() {
+  const dispatch = useAppDispatch();
+  const { loading, error } = useAppSelector((state) => state.auth);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -55,7 +72,7 @@ export default function LoginPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const result = await dispatch(
+    await dispatch(
       loginUser({ id: values.idNumber, password: values.password })
     );
   }
@@ -129,15 +146,6 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2 text-center">
-            {/* <Link
-              href="/register"
-              className="block text-blue-500 hover:text-blue-600"
-            >
-              Register
-            </Link> */}
-            {/* <Link href="/" className="block text-logoblue hover:underline">
-              Register
-            </Link> */}
             <Link
               href="/restore-password"
               className="block text-logoblue hover:underline"
@@ -148,5 +156,13 @@ export default function LoginPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <AuthCheck>
+      <LoginPageContent />
+    </AuthCheck>
   );
 }

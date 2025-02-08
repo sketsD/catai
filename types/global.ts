@@ -96,3 +96,14 @@ export interface MedicineState extends State {
   currentMedicine: [Medicine] | null;
   medicines: Array<Medicine> | [];
 }
+
+export interface LASAAnalysisResponse {
+  response_id: string;
+  ProductName: string;
+  ImageLocation: string;
+  SimilarProductsName: string[];
+  TextSimilarity: number[];
+  TextSimilarityImages: string[];
+  ImageSimilarity: number[];
+  ImageSimilarityImages: string[];
+}

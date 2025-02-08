@@ -33,8 +33,8 @@ export function DeclineModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white rounded-[8px]">
-        <div className="flex flex-col items-center text-center">
+      <DialogContent className="!bg-white sm:max-w-md rounded-[8px] p-0">
+        <div className="flex flex-col items-center text-center p-6">
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#fee9e7]">
             <AlertCircle className="h-10 w-10 text-[#ec221f]" />
           </div>
@@ -53,7 +53,7 @@ export function DeclineModal({
               </p>
             </div>
 
-            <div className="space-y-2 ">
+            <div className="space-y-2">
               <Label htmlFor="notes" className="w-full flex">
                 Notes
               </Label>
@@ -63,7 +63,6 @@ export function DeclineModal({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="min-h-[100px] rounded-[8px] mt-1 border-color-gray-250"
-                required
               />
             </div>
 

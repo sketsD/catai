@@ -42,7 +42,7 @@ export function LogoutModal({ isOpen, onClose }: LogoutModalProps) {
             onClick={handleLogout}
             className="bg-color-red-danger hover:bg-red-600 text-white px-8 rounded-[8px]"
           >
-            Log Off
+            Log Out
           </Button>
           <Button
             onClick={onClose}

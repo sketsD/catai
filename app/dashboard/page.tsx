@@ -17,10 +17,9 @@ import SortIcon from "@/components/SortIcon";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   clearError,
-  getFiltered,
   getMedicineByStatus,
   getMedicineData,
-  getSorted,
+  selectFilteredMedicines
 } from "@/store/slices/medicineSlice";
 import { Spinner } from "@/components/ui/spinner";
 import { format, formatDate, formatISO, parseISO } from "date-fns";
@@ -254,25 +253,40 @@ export default function DashboardPage() {
     },
   });
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
-  const { medicines, status, loading, error } = useAppSelector(
-    (state) => state.medicine
+  const { status, loading, error } = useAppSelector((state) => state.medicine);
+  const filteredMedicines = useAppSelector((state) => 
+    selectFilteredMedicines(state, filters, searchQuery, sortOrder)
   );
   const dispatch = useAppDispatch();
 
   const handleFilter = (filterState: FilterState) => {
+    console.log("[Dashboard] Applying filters:", filterState);
     setFilters(filterState);
-    dispatch(getFiltered(filterState));
+  };
+
+  const handleSortOrderChange = (order: "new" | "old") => {
+    console.log("[Dashboard] Changing sort order to:", order);
+    setSortOrder(order);
   };
 
   useEffect(() => {
-    console.log(activeTab);
+    console.log("[Dashboard] Component mounted or activeTab changed:", activeTab);
+    console.log("[Dashboard] Current loading state:", loading);
     if (!loading) {
-      dispatch(getMedicineByStatus(getActiveTab(activeTab)));
+      const status = getActiveTab(activeTab);
+      console.log("[Dashboard] Dispatching getMedicineByStatus with status:", status);
+      dispatch(getMedicineByStatus(status));
     }
     return () => {
+      console.log("[Dashboard] Cleaning up - clearing error");
       dispatch(clearError());
     };
   }, [activeTab]);
+
+  useEffect(() => {
+    console.log("[Dashboard] State update - loading:", loading, "status:", status, "error:", error);
+    console.log("[Dashboard] Filtered medicines count:", filteredMedicines.length);
+  }, [loading, status, error, filteredMedicines]);
 
   return (
     <div className="min-h-[calc(100vh-10rem)] bg-color-gray-200 p-2 sm:p-6">
@@ -339,8 +353,8 @@ export default function DashboardPage() {
                 />
                 <FilterDialog onFilterChange={handleFilter} />
                 <Popover>
-                  <PopoverTrigger asChild className="border-0 w-24">
-                    <Button className="p-0 text-lg rounded-[8px] hover:bg-color-gray-200">
+                  <PopoverTrigger asChild>
+                    <Button className="px-4 text-lg rounded-[8px] hover:bg-color-gray-200">
                       <SortIcon />
                       <span className="text-logoblue">Sort</span>
                     </Button>
@@ -349,29 +363,23 @@ export default function DashboardPage() {
                     <div className="grid gap-1">
                       <Button
                         variant="ghost"
+                        onClick={() => handleSortOrderChange("new")}
                         className={`justify-start font-normal py-3 rounded-[8px] hover:bg-color-gray-200 ${
                           sortOrder === "new"
                             ? "text-logoblue bg-color-gray-200"
                             : "hover:text-logoblue"
                         }`}
-                        onClick={() => {
-                          setSortOrder("new");
-                          dispatch(getSorted({ sortedBy: "new" }));
-                        }}
                       >
                         First New
                       </Button>
                       <Button
                         variant="ghost"
+                        onClick={() => handleSortOrderChange("old")}
                         className={`justify-start font-normal py-3 rounded-[8px] hover:bg-color-gray-200 ${
                           sortOrder === "old"
                             ? "text-logoblue bg-color-gray-200"
                             : "hover:text-logoblue"
                         }`}
-                        onClick={() => {
-                          setSortOrder("old");
-                          dispatch(getSorted({ sortedBy: "old" }));
-                        }}
                       >
                         First Old
                       </Button>
@@ -387,11 +395,7 @@ export default function DashboardPage() {
             ) : (
               <div>
                 <div
-                  className={`hidden sm:grid ${
-                    activeTab === "waiting"
-                      ? "sm:grid-cols-[1fr,100px,120px,100px]"
-                      : "sm:grid-cols-[1fr,100px,100px]"
-                  } items-center gap-4 p-4`}
+                  className={`hidden sm:grid sm:grid-cols-[1fr,100px,120px,100px] items-center gap-4 p-4`}
                 >
                   <div className="font-medium text-color-gray-400">
                     Medicine Name
@@ -399,17 +403,15 @@ export default function DashboardPage() {
                   <div className="font-medium text-center text-color-gray-400">
                     Date
                   </div>
-                  {activeTab === "waiting" && (
-                    <div className="font-medium text-center text-color-gray-400">
-                      Group Type
-                    </div>
-                  )}
+                  <div className="font-medium text-center text-color-gray-400">
+                    Group Type
+                  </div>
                   <div className="font-medium text-center text-color-gray-400">
                     Status
                   </div>
                 </div>
 
-                {medicines.map((medicine) => (
+                {filteredMedicines.map((medicine) => (
                   <div
                     className="border-[1px] border-color-gray-250 mb-4 rounded-[8px]"
                     key={medicine.metadata_id}
@@ -417,23 +419,18 @@ export default function DashboardPage() {
                     <Link
                       href={
                         medicine.status === "approved"
-                          ? `/dashboard/medicines/certified/${medicine.metadata_id}`
-                          : `/dashboard/medicines/${medicine.metadata_id}`
+                          ? `/dashboard/medicines/certified/${encodeURIComponent(medicine.product_name as string)}`
+                          : `/dashboard/medicines/${encodeURIComponent(medicine.product_name as string)}`
                       }
-                      className={`flex flex-wrap sm:grid ${
-                        activeTab === "waiting"
-                          ? "grid-cols-[minmax(0,1fr),100px,120px,100px]"
-                          : "grid-cols-[minmax(0,1fr),100px,100px]"
-                      } items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer`}
+                      className={`flex flex-wrap sm:grid grid-cols-[minmax(0,1fr),100px,120px,100px] items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer`}
                     >
                       <div className="truncate">{medicine.product_name}</div>
 
-                      {/* <div className="text-center">27/09/2024</div> */}
                       <div className="text-center">
                         {format(parseISO(medicine.created_at), "dd/MM/yyyy")}
                       </div>
-                      {activeTab === "waiting" && (
-                        <div className="flex justify-center">
+                      <div className="flex justify-center">
+                        {medicine.category && medicine.category !== "" && (
                           <Badge
                             className={`${getGroupTypeBadgeColor(
                               medicine.category as string
@@ -441,8 +438,8 @@ export default function DashboardPage() {
                           >
                             {medicine.category}
                           </Badge>
-                        </div>
-                      )}
+                        )}
+                      </div>
                       <div className="flex justify-center">
                         <Badge
                           variant="outline"
@@ -456,7 +453,7 @@ export default function DashboardPage() {
                     </Link>
                   </div>
                 ))}
-                {medicines.length === 0 && (
+                {filteredMedicines.length === 0 && (
                   <div className="p-4 text-center text-color-gray-400">
                     No medicines found
                   </div>

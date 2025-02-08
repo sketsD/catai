@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../store/store";
 import type React from "react";
+import { checkAuth } from "@/store/slices/authSlice";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading, token } = useSelector(
@@ -12,22 +13,29 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   );
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-
-  // useEffect(() => {
-  //   if (!isAuthenticated && !loading) {
-  //     dispatch(fetchCurrentUser());
-  //   }
-  // }, [isAuthenticated, loading, dispatch]);
+  const [isInitialCheck, setIsInitialCheck] = useState(true);
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.push("/");
-    }
-  }, [isAuthenticated, token, loading, router]);
+    const checkAuthentication = async () => {
+      try {
+        await dispatch(checkAuth()).unwrap();
+        setIsInitialCheck(false);
+      } catch (error) {
+        if (!isAuthenticated && !token) {
+          router.replace("/");
+        }
+        setIsInitialCheck(false);
+      }
+    };
 
-  // if (loading) {
-  //   return <div>Loading...</div>;
-  // }
+    if (isInitialCheck) {
+      checkAuthentication();
+    }
+  }, [dispatch, router, isAuthenticated, token, isInitialCheck]);
+
+  if (isInitialCheck || loading) {
+    return null;
+  }
 
   return isAuthenticated ? <>{children}</> : null;
 }
