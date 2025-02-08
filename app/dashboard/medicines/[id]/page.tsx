@@ -391,21 +391,22 @@ export default function MedicineDetailPage({
       if (updatedFields) {
         toast({
           description: (
-            <div className="flex flex-col items-center justify-center p-3 w-full">
+            <div className="flex flex-col items-center justify-center p-3 w-full bg-white">
               <CheckCircle2 className="w-16 h-16 text-[#14ae5c] mb-4" />
               <p className="text-xl font-semibold text-center w-full">Medicine successfully updated</p>
-              <p className="text-sm text-gray-500 text-center">Updated fields: {updatedFields}</p>
             </div>
           ),
+          className: "bg-white border-none",
         });
       } else {
         toast({
           description: (
-            <div className="flex flex-col items-center justify-center p-3 w-full">
+            <div className="flex flex-col items-center justify-center p-3 w-full bg-white">
               <AlertCircle className="h-10 w-10 text-[#14ae5c]" />
               <p className="text-xl font-semibold text-center w-full">No changes were made</p>
             </div>
           ),
+          className: "bg-white border-none",
         });
       }
       
