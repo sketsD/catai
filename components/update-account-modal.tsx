@@ -27,49 +27,59 @@ import {
 } from "@/components/ui/popover";
 import { SuccessModal } from "./success-modal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { clearError, registerUser } from "@/store/slices/authSlice";
+import { clearError, updateCurrentUser } from "@/store/slices/userSlice";
 import { FailedModal } from "./FailedModal";
 import { ChevronDown } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 import { isRole } from "@/utils/helpers";
+import { UserNoPass } from "@/types/global";
 
 const formSchema = z.object({
   firstname: z.string().min(2, "Name must be at least 2 characters"),
   surname: z.string().min(2, "Surname must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   id: z.string().min(8, "ID must be at least 8 characters"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
   userType: z.enum(["pharm", "admin", "tech"]),
 });
 
-interface CreateAccountModalProps {
+interface UpdateAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
+  firstname: string;
+  surname: string;
+  email: string;
+  id: string;
+  role: "pharm" | "admin" | "tech";
 }
 
-export function CreateAccountModal({
+export function UpdateAccountModal({
   isOpen,
   onClose,
-}: CreateAccountModalProps) {
+  firstname,
+  surname,
+  email,
+  id,
+  role,
+}: UpdateAccountModalProps) {
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [showFailed, setShowFailed] = useState<boolean>(false);
   const [error, setError] = useState("");
   const dispatch = useAppDispatch();
   const {
     loading,
-    error: registerError,
+    error: updatingError,
     status,
-  } = useAppSelector((state) => state.auth);
+    isEvent,
+  } = useAppSelector((state) => state.user);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstname: "",
-      surname: "",
-      email: "",
-      id: "",
-      password: "",
-      userType: "pharm",
+      firstname,
+      surname,
+      email,
+      id,
+      userType: role,
     },
   });
 
@@ -79,21 +89,18 @@ export function CreateAccountModal({
       setShowSuccess(true);
       form.reset();
     } else if (!loading && status === "error") {
-      setError(registerError || "Failed to register");
+      setError(updatingError || "Failed to register");
       setShowFailed(true);
     }
     return () => {
       dispatch(clearError());
-      // form.reset();
     };
-  }, [registerError, dispatch, clearError, status]);
+  }, [dispatch, status]);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    dispatch(clearError());
-    await dispatch(
-      registerUser({
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    dispatch(
+      updateCurrentUser({
         id: values.id,
-        password: values.password,
         role: values.userType,
         firstname: values.firstname,
         surname: values.surname,
@@ -108,12 +115,13 @@ export function CreateAccountModal({
         <DialogContent className="sm:max-w-[800px] m-2 sm:m-0 bg-white rounded-[8px] sm:h-fit h-3/4 overflow-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl text-center">
-              Create A New Account
+              Update the Account
             </DialogTitle>
           </DialogHeader>
           <div className="mt-2">
             <p className="text-center">
-              Please provide details to create an account in CATAI Pharm Desktop
+              Please provide details to update the account in CATAI Pharm
+              Desktop
             </p>
           </div>
           <Form {...form}>
@@ -235,32 +243,15 @@ export function CreateAccountModal({
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="rounded-[8px] border-color-gray-250"
-                            {...field}
-                            type="password"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-color-red-danger" />
-                      </FormItem>
-                    )}
-                  />
                 </div>
               </div>
 
               <div className="flex sm:justify-end justify-center  gap-4 pt-4">
                 <Button
                   type="submit"
-                  className="bg-[#14ae5c] hover:bg-[#14ae5c]/90 text-white rounded-[8px] "
+                  className="bg-[#14ae5c] hover:bg-[#14ae5c]/90 text-white rounded-[8px]"
                 >
-                  {loading ? "Creating... " : "Create"} {loading && <Spinner />}
+                  {isEvent ? "Updating..." : "Update"} {isEvent && <Spinner />}
                 </Button>
                 <Button
                   type="button"
@@ -278,7 +269,7 @@ export function CreateAccountModal({
       <SuccessModal
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
-        message="A new account created"
+        message="User data updated successfully"
       />
       <FailedModal
         isOpen={showFailed}

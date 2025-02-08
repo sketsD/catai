@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Filter, SortDesc } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,9 +16,7 @@ import SortIcon from "@/components/SortIcon";
 import { FilterSelect } from "@/components/filter-select";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Spinner } from "@/components/ui/spinner";
-import { getAllUsers } from "@/store/slices/userSlice";
-import { User } from "@/types/global";
-import { clearError } from "@/store/slices/authSlice";
+import { getAllUsers, clearError } from "@/store/slices/userSlice";
 import { isRole } from "@/utils/helpers";
 
 const getBadgeColor = (role: string) => {
@@ -39,19 +36,20 @@ export default function EmployeesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const dispatch = useAppDispatch();
-  const { users, loading, error, status } = useAppSelector(
-    (state) => state.user
-  );
+  const { users, loading, error, status } = useAppSelector((state) => {
+    console.log(state.user);
+    return state.user;
+  });
   const { userid } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!loading && status === "idle") {
-      dispatch(getAllUsers());
-    }
+    console.log(status + " mount employees + id");
+    dispatch(getAllUsers());
     return () => {
       dispatch(clearError());
+      console.log(status + " unmount employees + id");
     };
-  }, [dispatch, getAllUsers, clearError, status, loading]);
+  }, []);
 
   // Filter employees based on search query
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -89,7 +87,7 @@ export default function EmployeesPage() {
     dispatch,
     getAllUsers,
     clearError,
-    status,
+    // status,
     loading,
   ]);
 
@@ -185,7 +183,11 @@ export default function EmployeesPage() {
                   className="border-[1px] border-color-gray-250 mb-4 rounded-[8px]"
                 >
                   <Link
-                    href={`/dashboard/employees/${user.id}`}
+                    href={
+                      userid === user.id
+                        ? "/dashboard/profile"
+                        : `/dashboard/employees/${user.id}`
+                    }
                     className="flex flex-wrap sm:grid grid-cols-[minmax(0,1fr),100px,100px] items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer "
                   >
                     <div className="truncate">

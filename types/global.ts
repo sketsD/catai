@@ -58,6 +58,7 @@ export interface RegisterCredentials extends RegisterSliceCredentials {
 export interface UserState extends State {
   users: Array<User>;
   currentUser: UserNoPass | null;
+  isEvent: boolean;
 }
 
 export interface UserNoPass {
@@ -69,9 +70,13 @@ export interface UserNoPass {
 }
 
 export interface Medicine {
+  // status: "pending" | "decilne" | "approved" | null;
+
   metadata_id: string | null;
   product_name: string | null;
   product_dosage: string | null;
+  barcode: string | null;
+  or_image: string | null;
   intake_method: string | null;
   category: string | null;
   manufacturer: string | null;
@@ -80,9 +85,14 @@ export interface Medicine {
   product_active_ingredient: string | null;
   manufacturing_country: string | null;
   country_registration: string | null;
-  status: "pending" | "decilne" | "approved" | null;
+  status: "pending" | "approved" | "completed" | null;
+  created_at: string;
+  upload_time: string;
+  images_location: Array<string | null>;
+  qr_location: Object;
 }
 
 export interface MedicineState extends State {
+  currentMedicine: [Medicine] | null;
   medicines: Array<Medicine> | [];
 }

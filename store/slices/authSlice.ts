@@ -59,31 +59,6 @@ export const registerUser = createAsyncThunk<
   }
 });
 
-// export const fetchCurrentUser = createAsyncThunk<
-//   User,
-//   void,
-//   { rejectValue: string }
-// >("auth/fetchCurrent", async (_, { rejectWithValue }) => {
-//   try {
-//     const token = Cookies.get("auth-token");
-//     if (!token) {
-//       throw new Error("No authentication token found");
-//     }
-
-//     const user: User = {
-//       id: "1",
-//       name: "John",
-//       surname: "Doe",
-//       email: "john@example.com",
-//       role: "admin",
-//     };
-//     return user;
-//   } catch (error: any) {
-//     return rejectWithValue(error?.message || "Failed to fetch user");
-//   }
-// });
-
-// Slice
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -101,7 +76,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -117,7 +91,6 @@ const authSlice = createSlice({
         state.error = action.payload || "Login failed";
         state.isAuthenticated = false;
       })
-      // Register
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -130,8 +103,6 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.status = "error";
-        console.log("here rejected");
-        console.log(action);
         state.error = action.payload || "Registration failed";
       });
   },

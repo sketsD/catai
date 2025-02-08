@@ -7,8 +7,8 @@ type TokenId = {
 };
 
 export const medicineService = {
-  getAllMedicine: (token: string) =>
-    api.get<Array<Medicine>>(`/medicines?jwt_token=${token}`),
+  getMedicineByStatus: ({ status, token }: { status: string; token: string }) =>
+    api.get<Array<Medicine>>(`/medicines/${status}?jwt_token=${token}`),
   //   getCurrentUser: ({ token, id }: TokenId) =>
   //     api.get<UserNoPass>(`/users?id=${id}&jwt_token=${token}`),
   //   //   Path to be changed

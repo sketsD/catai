@@ -4,8 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../store/store";
-import { fetchCurrentUser } from "../store/slices/authSlice";
-import type React from "react"; // Added import for React
+import type React from "react";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading, token } = useSelector(

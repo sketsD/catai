@@ -7,28 +7,47 @@ import { LogoutModal } from "@/components/logout-modal";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { getCurrentUser } from "@/store/slices/userSlice";
+import { clearError, getCurrentUser } from "@/store/slices/userSlice";
+import { Spinner } from "@/components/ui/spinner";
+import { UpdateAccountModal } from "@/components/update-account-modal";
+import { current } from "@reduxjs/toolkit";
 
 export default function ProfilePage() {
+  const [showUpdateModal, setUpdateModal] = useState<boolean>(false);
   const {
     currentUser: user,
     status,
     error,
     loading,
+    users,
+    isEvent,
   } = useAppSelector((state) => state.user);
   const { userid } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (userid) {
+    if (!loading && userid) {
+      console.log(status + " profile mount");
       dispatch(getCurrentUser({ id: userid }));
     }
-    console.log("This is current user");
-    console.log(user);
+    return () => {
+      dispatch(clearError());
+      console.log(status + " Profile unmount");
+    };
   }, []);
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-
+  if (!user) {
+    <div className="flex items-center justify-center w-full min-h-[calc(100vh-3rem)] bg-color-gray-200 p-2 sm:p-6">
+      No data found
+    </div>;
+  }
+  if (loading && !isEvent)
+    return (
+      <div className="flex items-center justify-center w-full min-h-[calc(100vh-3rem)] bg-color-gray-200 p-2 sm:p-6">
+        <Spinner />
+      </div>
+    );
   return (
     <div className="min-h-screen bg-color-gray-200 p-2 sm:p-6">
       <div className="flex flex-col gap-6 min-h-[calc(100vh-3rem)] overflow-y-auto bg-white border-[1px] border-color-gray-250 rounded-[8px]">
@@ -110,7 +129,10 @@ export default function ProfilePage() {
                     className="rounded-[8px] border-color-gray-250"
                   />
                 </div>
-                <Button className="rounded-[8px] w-full bg-logoblue hover:bg-blue-700 text-white">
+                <Button
+                  className="rounded-[8px] w-full bg-logoblue hover:bg-blue-700 text-white"
+                  onClick={() => setUpdateModal(true)}
+                >
                   Edit Contact information
                 </Button>
                 <Button
@@ -126,6 +148,16 @@ export default function ProfilePage() {
           <LogoutModal
             isOpen={showLogoutModal}
             onClose={() => setShowLogoutModal(false)}
+          />
+
+          <UpdateAccountModal
+            isOpen={showUpdateModal}
+            onClose={() => setUpdateModal(false)}
+            id={user?.id || ""}
+            email={user?.email || ""}
+            firstname={user?.firstname || ""}
+            surname={user?.surname || ""}
+            role={user?.role || "pharm"}
           />
         </div>
       </div>

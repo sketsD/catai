@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, act } from "react";
 import { SortDesc } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,189 +15,197 @@ import {
 import Link from "next/link";
 import SortIcon from "@/components/SortIcon";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { getAllMedicine } from "@/store/slices/medicineSlice";
+import {
+  clearError,
+  getFiltered,
+  getMedicineByStatus,
+  getMedicineData,
+  getSorted,
+} from "@/store/slices/medicineSlice";
+import { Spinner } from "@/components/ui/spinner";
+import { format, formatDate, formatISO, parseISO } from "date-fns";
 
 // Mock data - would come from API in real app
-const waitingMedicines = [
-  {
-    id: "1",
-    name: "Cefotaxime Medo",
-    date: "20/10/24",
-    groupType: "Pharmacy",
-    status: "Pending",
-  },
-  {
-    id: "2",
-    name: "Ibuprofen",
-    date: "20/10/24",
-    groupType: "Technical",
-    status: "Pending",
-  },
-  {
-    id: "3",
-    name: "Paracetamol",
-    date: "20/10/24",
-    groupType: "Technical",
-    status: "Pending",
-  },
-  {
-    id: "4",
-    name: "Metformin",
-    date: "19/10/24",
-    groupType: "Pharmacy",
-    status: "Pending",
-  },
-  {
-    id: "5",
-    name: "Omeprazole",
-    date: "18/10/24",
-    groupType: "Pharmacy",
-    status: "Pending",
-  },
-  {
-    id: "6",
-    name: "Doxycycline",
-    date: "17/10/24",
-    groupType: "Technical",
-    status: "Pending",
-  },
-  {
-    id: "7",
-    name: "Amoxicillin",
-    date: "20/10/24",
-    groupType: "Pharmacy",
-    status: "Pending",
-  },
-  {
-    id: "8",
-    name: "Aspirin",
-    date: "20/10/24",
-    groupType: "Technical",
-    status: "Pending",
-  },
-  {
-    id: "9",
-    name: "Lisinopril",
-    date: "19/10/24",
-    groupType: "Pharmacy",
-    status: "Pending",
-  },
-  {
-    id: "10",
-    name: "Simvastatin",
-    date: "19/10/24",
-    groupType: "Technical",
-    status: "Pending",
-  },
-];
+// const waitingMedicines = [
+//   {
+//     id: "1",
+//     name: "Cefotaxime Medo",
+//     date: "20/10/24",
+//     groupType: "Pharmacy",
+//     status: "Pending",
+//   },
+//   {
+//     id: "2",
+//     name: "Ibuprofen",
+//     date: "20/10/24",
+//     groupType: "Technical",
+//     status: "Pending",
+//   },
+//   {
+//     id: "3",
+//     name: "Paracetamol",
+//     date: "20/10/24",
+//     groupType: "Technical",
+//     status: "Pending",
+//   },
+//   {
+//     id: "4",
+//     name: "Metformin",
+//     date: "19/10/24",
+//     groupType: "Pharmacy",
+//     status: "Pending",
+//   },
+//   {
+//     id: "5",
+//     name: "Omeprazole",
+//     date: "18/10/24",
+//     groupType: "Pharmacy",
+//     status: "Pending",
+//   },
+//   {
+//     id: "6",
+//     name: "Doxycycline",
+//     date: "17/10/24",
+//     groupType: "Technical",
+//     status: "Pending",
+//   },
+//   {
+//     id: "7",
+//     name: "Amoxicillin",
+//     date: "20/10/24",
+//     groupType: "Pharmacy",
+//     status: "Pending",
+//   },
+//   {
+//     id: "8",
+//     name: "Aspirin",
+//     date: "20/10/24",
+//     groupType: "Technical",
+//     status: "Pending",
+//   },
+//   {
+//     id: "9",
+//     name: "Lisinopril",
+//     date: "19/10/24",
+//     groupType: "Pharmacy",
+//     status: "Pending",
+//   },
+//   {
+//     id: "10",
+//     name: "Simvastatin",
+//     date: "19/10/24",
+//     groupType: "Technical",
+//     status: "Pending",
+//   },
+// ];
 
-const certifiedMedicines = [
-  {
-    id: "1",
-    name: "Cefotaxime Medo",
-    date: "20/10/24",
-    groupType: "Pharmacy",
-    status: "Approved",
-  },
-  {
-    id: "2",
-    name: "Ibuprofen",
-    date: "20/10/24",
-    groupType: "Technical",
-    status: "Approved",
-  },
-  {
-    id: "3",
-    name: "Paracetamol",
-    date: "20/10/24",
-    groupType: "Technical",
-    status: "Approved",
-  },
-  {
-    id: "4",
-    name: "Metformin",
-    date: "19/10/24",
-    groupType: "Pharmacy",
-    status: "Approved",
-  },
-  {
-    id: "5",
-    name: "Omeprazole",
-    date: "18/10/24",
-    groupType: "Pharmacy",
-    status: "Approved",
-  },
-  {
-    id: "6",
-    name: "Doxycycline",
-    date: "17/10/24",
-    groupType: "Technical",
-    status: "Approved",
-  },
-  {
-    id: "7",
-    name: "Amoxicillin",
-    date: "20/10/24",
-    groupType: "Pharmacy",
-    status: "Approved",
-  },
-  {
-    id: "8",
-    name: "Aspirin",
-    date: "20/10/24",
-    groupType: "Technical",
-    status: "Approved",
-  },
-  {
-    id: "9",
-    name: "Lisinopril",
-    date: "19/10/24",
-    groupType: "Pharmacy",
-    status: "Approved",
-  },
-  {
-    id: "10",
-    name: "Simvastatin",
-    date: "19/10/24",
-    groupType: "Technical",
-    status: "Approved",
-  },
-  {
-    id: "11",
-    name: "Metoprolol",
-    date: "18/10/24",
-    groupType: "Pharmacy",
-    status: "Approved",
-  },
-  {
-    id: "12",
-    name: "Amlodipine",
-    date: "18/10/24",
-    groupType: "Technical",
-    status: "Approved",
-  },
-  {
-    id: "13",
-    name: "Gabapentin",
-    date: "17/10/24",
-    groupType: "Pharmacy",
-    status: "Approved",
-  },
-  {
-    id: "14",
-    name: "Sertraline",
-    date: "17/10/24",
-    groupType: "Technical",
-    status: "Approved",
-  },
-  {
-    id: "15",
-    name: "Fluoxetine",
-    date: "16/10/24",
-    groupType: "Pharmacy",
-    status: "Approved",
-  },
-];
+// const certifiedMedicines = [
+//   {
+//     id: "1",
+//     name: "Cefotaxime Medo",
+//     date: "20/10/24",
+//     groupType: "Pharmacy",
+//     status: "Approved",
+//   },
+//   {
+//     id: "2",
+//     name: "Ibuprofen",
+//     date: "20/10/24",
+//     groupType: "Technical",
+//     status: "Approved",
+//   },
+//   {
+//     id: "3",
+//     name: "Paracetamol",
+//     date: "20/10/24",
+//     groupType: "Technical",
+//     status: "Approved",
+//   },
+//   {
+//     id: "4",
+//     name: "Metformin",
+//     date: "19/10/24",
+//     groupType: "Pharmacy",
+//     status: "Approved",
+//   },
+//   {
+//     id: "5",
+//     name: "Omeprazole",
+//     date: "18/10/24",
+//     groupType: "Pharmacy",
+//     status: "Approved",
+//   },
+//   {
+//     id: "6",
+//     name: "Doxycycline",
+//     date: "17/10/24",
+//     groupType: "Technical",
+//     status: "Approved",
+//   },
+//   {
+//     id: "7",
+//     name: "Amoxicillin",
+//     date: "20/10/24",
+//     groupType: "Pharmacy",
+//     status: "Approved",
+//   },
+//   {
+//     id: "8",
+//     name: "Aspirin",
+//     date: "20/10/24",
+//     groupType: "Technical",
+//     status: "Approved",
+//   },
+//   {
+//     id: "9",
+//     name: "Lisinopril",
+//     date: "19/10/24",
+//     groupType: "Pharmacy",
+//     status: "Approved",
+//   },
+//   {
+//     id: "10",
+//     name: "Simvastatin",
+//     date: "19/10/24",
+//     groupType: "Technical",
+//     status: "Approved",
+//   },
+//   {
+//     id: "11",
+//     name: "Metoprolol",
+//     date: "18/10/24",
+//     groupType: "Pharmacy",
+//     status: "Approved",
+//   },
+//   {
+//     id: "12",
+//     name: "Amlodipine",
+//     date: "18/10/24",
+//     groupType: "Technical",
+//     status: "Approved",
+//   },
+//   {
+//     id: "13",
+//     name: "Gabapentin",
+//     date: "17/10/24",
+//     groupType: "Pharmacy",
+//     status: "Approved",
+//   },
+//   {
+//     id: "14",
+//     name: "Sertraline",
+//     date: "17/10/24",
+//     groupType: "Technical",
+//     status: "Approved",
+//   },
+//   {
+//     id: "15",
+//     name: "Fluoxetine",
+//     date: "16/10/24",
+//     groupType: "Pharmacy",
+//     status: "Approved",
+//   },
+// ];
 
 const getGroupTypeBadgeColor = (type: string) => {
   switch (type) {
@@ -223,6 +231,14 @@ const getStatusBadgeStyle = (status: string) => {
   }
 };
 
+const getActiveTab = (statusTab: string) => {
+  return statusTab === "waiting"
+    ? "pending"
+    : statusTab === "approved"
+    ? "approved"
+    : "completed";
+};
+
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("waiting");
   const [searchQuery, setSearchQuery] = useState("");
@@ -238,50 +254,28 @@ export default function DashboardPage() {
     },
   });
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
-  const { medicines: allMedicnes } = useAppSelector((state) => state.medicine);
+  const { medicines, status, loading, error } = useAppSelector(
+    (state) => state.medicine
+  );
   const dispatch = useAppDispatch();
-  const waitingMedicines = allMedicnes.filter(
-    (medicine) => medicine.status === "pending"
-  );
-  const certifiedMedicines = allMedicnes.filter(
-    (medicine) => medicine.status !== "pending"
-  );
-  const medicines =
-    activeTab === "waiting" ? waitingMedicines : certifiedMedicines;
-  // const {medicines} =
+
+  const handleFilter = (filterState: FilterState) => {
+    setFilters(filterState);
+    dispatch(getFiltered(filterState));
+  };
+
   useEffect(() => {
-    dispatch(getAllMedicine());
-  }, []);
-
-  // Filter and sort medicines
-  const filteredMedicines = medicines.filter((medicine) => {
-    const matchesSearch = medicine.product_name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-
-    // Apply group type filter
-    const matchesGroupType =
-      filters.groupType.all ||
-      (filters.groupType.technical && medicine.category === "technical") ||
-      (filters.groupType.pharmacy && medicine.category === "pharmacy");
-
-    // Apply date filter (simplified for demo)
-    // const matchesDate = filters.date.oneDay
-    //   ? medicine.date >= "20/10/24"
-    //   : medicine.date < "20/10/24";
-
-    return matchesSearch && matchesGroupType;
-    // return matchesSearch && matchesGroupType && matchesDate;
-  });
-  // .sort((a, b) => {
-  //   if (sortOrder === "new") {
-  //     return b.date.localeCompare(a.date);
-  //   }
-  //   return a.date.localeCompare(b.date);
-  // });
+    console.log(activeTab);
+    if (!loading) {
+      dispatch(getMedicineByStatus(getActiveTab(activeTab)));
+    }
+    return () => {
+      dispatch(clearError());
+    };
+  }, [activeTab]);
 
   return (
-    <div className="min-h-screen bg-color-gray-200 p-2 sm:p-6">
+    <div className="min-h-[calc(100vh-10rem)] bg-color-gray-200 p-2 sm:p-6">
       <div className="overflow-hidden">
         <Tabs
           value={activeTab}
@@ -291,7 +285,7 @@ export default function DashboardPage() {
           <TabsList className="">
             <TabsTrigger value="waiting" className="px-0 py-0">
               <div
-                className={`w-full bg-white px-4 py-2 ${
+                className={`w-full bg-white px-4 py-2 h-full rounded-tl-[4px] flex items-center border-r-[1.5px] border-color-gray-250 ${
                   activeTab === "waiting"
                     ? "text-logoblue"
                     : "text-color-gray-400"
@@ -300,11 +294,11 @@ export default function DashboardPage() {
                 Waiting List
               </div>
             </TabsTrigger>
-            <div className="sm:w-[1px] w-[2px] h-full bg-color-gray-250"></div>
-            <TabsTrigger value="certified" className="px-0 py-0">
+            {/* <div className="sm:w-[1px] w-[2px] h-full bg-color-gray-250"></div> */}
+            <TabsTrigger value="approved" className="px-0 py-0">
               <div
-                className={`w-full bg-white px-4 py-2 ${
-                  activeTab === "certified"
+                className={`w-full bg-white px-4 py-2 h-full flex items-center border-r-[1.5px] border-color-gray-250 ${
+                  activeTab === "approved"
                     ? "text-logoblue"
                     : "text-color-gray-400"
                 }`}
@@ -312,12 +306,28 @@ export default function DashboardPage() {
                 Certified List
               </div>
             </TabsTrigger>
+            {/* <div className=" h-full bg-color-gray-250 border-r-[2px] border-red-900"></div> */}
+            <TabsTrigger value="completed" className="px-0 py-0">
+              <div
+                className={`w-full bg-white px-4 py-2 h-full rounded-tr-[4px] flex items-center  ${
+                  activeTab === "completed"
+                    ? "text-logoblue"
+                    : "text-color-gray-400"
+                }`}
+              >
+                All Medicine List
+              </div>
+            </TabsTrigger>
           </TabsList>
 
-          <div className="flex flex-col gap-6 p-2 sm:p-6 min-h-[calc(100vh-6rem)] overflow-y-auto bg-white border-[1px] border-color-gray-250 rounded-b-[8px] sm:rounded-tr-[8px]">
+          <div className="flex flex-col gap-6 p-2 sm:p-6 min-h-[calc(100vh-8rem)] md:min-h-[calc(100vh-10rem)] overflow-y-auto bg-white border-[1px] border-color-gray-250 rounded-b-[8px] sm:rounded-tr-[8px]">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <h1 className="text-2xl font-semibold text-nowrap">
-                {activeTab === "waiting" ? "Waiting List" : "Certified List"}
+                {activeTab === "waiting"
+                  ? "Waiting List"
+                  : activeTab === "approved"
+                  ? "Certified List"
+                  : "All Medicine List"}
               </h1>
               <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full lg:w-auto mb-2 sm:mb-0">
                 <Input
@@ -327,7 +337,7 @@ export default function DashboardPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <FilterDialog onFilterChange={setFilters} />
+                <FilterDialog onFilterChange={handleFilter} />
                 <Popover>
                   <PopoverTrigger asChild className="border-0 w-24">
                     <Button className="p-0 text-lg rounded-[8px] hover:bg-color-gray-200">
@@ -344,7 +354,10 @@ export default function DashboardPage() {
                             ? "text-logoblue bg-color-gray-200"
                             : "hover:text-logoblue"
                         }`}
-                        onClick={() => setSortOrder("new")}
+                        onClick={() => {
+                          setSortOrder("new");
+                          dispatch(getSorted({ sortedBy: "new" }));
+                        }}
                       >
                         First New
                       </Button>
@@ -355,7 +368,10 @@ export default function DashboardPage() {
                             ? "text-logoblue bg-color-gray-200"
                             : "hover:text-logoblue"
                         }`}
-                        onClick={() => setSortOrder("old")}
+                        onClick={() => {
+                          setSortOrder("old");
+                          dispatch(getSorted({ sortedBy: "old" }));
+                        }}
                       >
                         First Old
                       </Button>
@@ -364,82 +380,89 @@ export default function DashboardPage() {
                 </Popover>
               </div>
             </div>
-
-            <div className="">
-              <div
-                className={`hidden sm:grid ${
-                  activeTab === "waiting"
-                    ? "sm:grid-cols-[1fr,100px,120px,100px]"
-                    : "sm:grid-cols-[1fr,100px,100px]"
-                } items-center gap-4 p-4`}
-              >
-                <div className="font-medium text-color-gray-400">
-                  Medicine Name
-                </div>
-                <div className="font-medium text-center text-color-gray-400">
-                  Date
-                </div>
-                {activeTab === "waiting" && (
-                  <div className="font-medium text-center text-color-gray-400">
-                    Group Type
-                  </div>
-                )}
-                <div className="font-medium text-center text-color-gray-400">
-                  Status
-                </div>
+            {loading ? (
+              <div className="min-h-[40vh] md:min-h-[70vh] flex justify-center items-center w-full">
+                <Spinner />
               </div>
-
-              {filteredMedicines.map((medicine) => (
+            ) : (
+              <div>
                 <div
-                  className="border-[1px] border-color-gray-250 mb-4 rounded-[8px]"
-                  key={medicine.metadata_id}
+                  className={`hidden sm:grid ${
+                    activeTab === "waiting"
+                      ? "sm:grid-cols-[1fr,100px,120px,100px]"
+                      : "sm:grid-cols-[1fr,100px,100px]"
+                  } items-center gap-4 p-4`}
                 >
-                  <Link
-                    href={
-                      medicine.status === "approved"
-                        ? `/dashboard/medicines/certified/${medicine.metadata_id}`
-                        : `/dashboard/medicines/${medicine.metadata_id}`
-                    }
-                    className={`flex flex-wrap sm:grid ${
-                      activeTab === "waiting"
-                        ? "grid-cols-[minmax(0,1fr),100px,120px,100px]"
-                        : "grid-cols-[minmax(0,1fr),100px,100px]"
-                    } items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer`}
-                  >
-                    <div className="truncate">{medicine.product_name}</div>
+                  <div className="font-medium text-color-gray-400">
+                    Medicine Name
+                  </div>
+                  <div className="font-medium text-center text-color-gray-400">
+                    Date
+                  </div>
+                  {activeTab === "waiting" && (
+                    <div className="font-medium text-center text-color-gray-400">
+                      Group Type
+                    </div>
+                  )}
+                  <div className="font-medium text-center text-color-gray-400">
+                    Status
+                  </div>
+                </div>
 
-                    <div className="text-center">27/09/2024</div>
-                    {/* <div className="text-center">{medicine.date}</div> */}
-                    {activeTab === "waiting" && (
+                {medicines.map((medicine) => (
+                  <div
+                    className="border-[1px] border-color-gray-250 mb-4 rounded-[8px]"
+                    key={medicine.metadata_id}
+                  >
+                    <Link
+                      href={
+                        medicine.status === "approved"
+                          ? `/dashboard/medicines/certified/${medicine.metadata_id}`
+                          : `/dashboard/medicines/${medicine.metadata_id}`
+                      }
+                      className={`flex flex-wrap sm:grid ${
+                        activeTab === "waiting"
+                          ? "grid-cols-[minmax(0,1fr),100px,120px,100px]"
+                          : "grid-cols-[minmax(0,1fr),100px,100px]"
+                      } items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer`}
+                    >
+                      <div className="truncate">{medicine.product_name}</div>
+
+                      {/* <div className="text-center">27/09/2024</div> */}
+                      <div className="text-center">
+                        {format(parseISO(medicine.created_at), "dd/MM/yyyy")}
+                      </div>
+                      {activeTab === "waiting" && (
+                        <div className="flex justify-center">
+                          <Badge
+                            className={`${getGroupTypeBadgeColor(
+                              medicine.category as string
+                            )} text-white whitespace-nowrap py-2`}
+                          >
+                            {medicine.category}
+                          </Badge>
+                        </div>
+                      )}
                       <div className="flex justify-center">
                         <Badge
-                          className={`${getGroupTypeBadgeColor(
-                            medicine.category
-                          )} text-white whitespace-nowrap py-2`}
+                          variant="outline"
+                          className={`${getStatusBadgeStyle(
+                            medicine.status as string
+                          )} whitespace-nowrap py-2`}
                         >
-                          {medicine.category}
+                          {medicine.status}
                         </Badge>
                       </div>
-                    )}
-                    <div className="flex justify-center">
-                      <Badge
-                        variant="outline"
-                        className={`${getStatusBadgeStyle(
-                          medicine.status
-                        )} whitespace-nowrap py-2`}
-                      >
-                        {medicine.status}
-                      </Badge>
-                    </div>
-                  </Link>
-                </div>
-              ))}
-              {filteredMedicines.length === 0 && (
-                <div className="p-4 text-center text-color-gray-400">
-                  No medicines found
-                </div>
-              )}
-            </div>
+                    </Link>
+                  </div>
+                ))}
+                {medicines.length === 0 && (
+                  <div className="p-4 text-center text-color-gray-400">
+                    No medicines found
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </Tabs>
       </div>

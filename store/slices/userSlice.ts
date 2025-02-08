@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { User, UserNoPass, UserState } from "@/types/global";
 import Cookies from "js-cookie";
 import { userService } from "@/utils/userServie";
+import { startOfWeek } from "date-fns";
 
 const token = Cookies.get("auth-token");
 const initialState: UserState = {
@@ -10,7 +11,9 @@ const initialState: UserState = {
   error: null,
   currentUser: null,
   users: [],
+  isEvent: false,
 };
+
 export const getAllUsers = createAsyncThunk<
   Array<User>,
   void,
@@ -58,11 +61,11 @@ export const deleteCurrentUser = createAsyncThunk<
 });
 
 export const updateCurrentUser = createAsyncThunk<
-  { message: string },
+  UserNoPass,
   UserNoPass,
   { rejectValue: string }
 >(
-  "user/deleteCurrentUser",
+  "user/updateCurrentUser",
   async ({ id, firstname, surname, email, role }, { rejectWithValue }) => {
     try {
       if (!token) throw new Error("Token is not provided");
@@ -71,7 +74,7 @@ export const updateCurrentUser = createAsyncThunk<
         { id, firstname, surname, email, role }
       );
       console.log(response);
-      return response.data;
+      return { id, firstname, surname, email, role };
     } catch (error: any) {
       return rejectWithValue(error?.message || "Failed to update user data");
     }
@@ -85,64 +88,90 @@ export const userSlice = createSlice({
     clearError: (state) => {
       state.error = null;
       state.status = "idle";
+      console.log(state.status + " clearing status");
+    },
+    clearUser: (state) => {
+      state.currentUser = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Login
       .addCase(getAllUsers.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.status = "idle";
+        // state.status = "idle";
       })
       .addCase(getAllUsers.fulfilled, (state, action) => {
         state.loading = false;
         state.users = action.payload;
         state.error = null;
-        state.status = "success";
+        // state.status = "success";
+        console.log(state.status + " all fulfiled");
       })
       .addCase(getAllUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Loading failed";
-        state.status = "error";
+        // state.status = "error";
       })
       .addCase(getCurrentUser.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.status = "idle";
+        state.currentUser = null;
+        // state.status = "idle";
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
         state.currentUser = action.payload;
         state.error = null;
-        state.status = "success";
+        // state.status = "success";
+        console.log(state.status + " current fulfiled");
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Loading user is failed";
-        state.status = "error";
+        state.currentUser = null;
+        state.error = action.payload || "Loading of user is failed";
+        // state.status = "error";
       })
-      .addCase(deleteCurrentUser.pending, (state) => {
+      .addCase(updateCurrentUser.pending, (state) => {
+        state.isEvent = true;
         state.loading = true;
         state.error = null;
         state.status = "idle";
       })
-      .addCase(deleteCurrentUser.fulfilled, (state, action) => {
+      .addCase(updateCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
+        state.isEvent = false;
+        state.error = null;
+        state.currentUser = action.payload;
+        state.status = "success";
+      })
+      .addCase(updateCurrentUser.rejected, (state, action) => {
+        state.loading = false;
+        state.isEvent = false;
+        state.error = action.payload || "Updating of user is failed";
+        state.status = "error";
+      })
+      .addCase(deleteCurrentUser.pending, (state) => {
+        state.isEvent = true;
+        state.loading = true;
+        state.error = null;
+        // state.status = "idle";
+      })
+      .addCase(deleteCurrentUser.fulfilled, (state) => {
+        state.loading = false;
+        state.isEvent = false;
         state.error = null;
         state.currentUser = null;
-        state.users = state.users.filter(
-          (user) => user.id !== state.currentUser?.id
-        );
-        state.status = "success";
+        // state.status = "success";
       })
       .addCase(deleteCurrentUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Deleting user is failed";
-        state.status = "error";
+        state.isEvent = false;
+        state.error = action.payload || "Deleting of user is failed";
+        // state.status = "error";
       });
   },
 });
 
-export const { clearError } = userSlice.actions;
+export const { clearError, clearUser } = userSlice.actions;
 export default userSlice.reducer;
