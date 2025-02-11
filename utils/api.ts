@@ -1,5 +1,7 @@
 import { ApiError } from "@/types/global";
 import axios, { type AxiosError } from "axios";
+import { removeLocalStorage } from "./localStorage";
+import { initializeAuthState } from "@/store/slices/authSlice";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -11,24 +13,20 @@ export const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    console.log(error);
+    console.log("[API] Error : " + error);
     const apiError: ApiError = {
       message: error.response?.data?.detail || "An unexpected error occurred",
       status: error.response?.status,
       code: error.code,
     };
-    return Promise.reject(apiError);
+    if (error.response && error.response.status === 401) {
+      console.log("[API] Unauthorized Response: " + error.response);
+      console.log("[API] Unauthorized Status: " + error.status);
+      removeLocalStorage("auth-token");
+      removeLocalStorage("user-id");
+      // initializeAuthState();
+
+      return Promise.reject(apiError);
+    }
   }
 );
-// Добавляем перехватчик для добавления токена
-// api.interceptors.request.use(
-//   (config) => {
-//     const token = Cookies.get("auth-token");
-//     if (token) {
-//       config.headers["Authorization"] = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
-

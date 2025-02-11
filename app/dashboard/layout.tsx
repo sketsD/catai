@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Users, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Navbar from "@/components/Navbar";
-import EmployeeList from "@/components/EmployeeList";
-import Profile from "@/components/Profile";
+import EmployeeList from "@/components/ui/EmployeeList";
+import Profile from "@/components/ui/Profile";
 import { ProtectedRoute } from "@/components/protected-route";
 
 export default function DashboardLayout({

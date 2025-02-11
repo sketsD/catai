@@ -1,7 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { User, UserNoPass, UserState } from "@/types/global";
 import { userService } from "@/utils/userServie";
-import { getLocalStorage } from '@/utils/localStorage';
+import { getLocalStorage } from "@/utils/localStorage";
+import { RootState } from "../store";
+import { FilterStateUsers } from "@/components/filter-select";
 
 const token = getLocalStorage("auth-token");
 const initialState: UserState = {
@@ -123,7 +125,6 @@ export const userSlice = createSlice({
         state.currentUser = action.payload;
         state.error = null;
         // state.status = "success";
-        console.log(state.status + " current fulfiled");
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.loading = false;
@@ -174,3 +175,61 @@ export const userSlice = createSlice({
 
 export const { clearError, clearUser } = userSlice.actions;
 export default userSlice.reducer;
+
+export const selectFilteredUsers = (
+  state: RootState,
+  filters: FilterStateUsers,
+  searchQuery: string = "",
+  sortOrder: "asc" | "desc" = "desc"
+) => {
+  const filtered = state.user.users.filter((user) => {
+    // Search
+    const searchQueryLower = searchQuery.toLowerCase();
+    const matchesSearch = searchQuery
+      ? user.firstname?.toLowerCase().includes(searchQueryLower) ||
+        user.surname?.toLowerCase().includes(searchQueryLower) ||
+        user.id?.toLowerCase().includes(searchQueryLower)
+      : true;
+
+    // Filter by the category
+    const matchesGroup = !filters.all ? filters[user.role] && user.role : true;
+
+    return matchesSearch && matchesGroup;
+  });
+  // Sorting by Ascending / Descending
+  return [...filtered].sort((a, b) => {
+    if (sortOrder === "asc") return a.id.localeCompare(b.id);
+    return b.id.localeCompare(a.id);
+  });
+};
+
+// const filteredAndSortedEmployees = useMemo(() => {
+//   return users
+//     .filter((user) => {
+//       const matchesSearch =
+//         user.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+//         user.surname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+//         user.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+//         user.role.toLowerCase().includes(searchQuery.toLowerCase());
+//       const matchesType =
+//         filters.all ||
+//         filters[user.role.toLowerCase() as keyof typeof filters];
+//       return matchesSearch && matchesType;
+//     })
+//     .sort((a, b) => {
+//       if (sortOrder === "asc") {
+//         return a.id.localeCompare(b.id);
+//       } else {
+//         return b.id.localeCompare(a.id);
+//       }
+//     });
+// }, [
+//   searchQuery,
+//   filters,
+//   sortOrder,
+//   dispatch,
+//   getAllUsers,
+//   clearError,
+//   // status,
+//   loading,
+// ]);

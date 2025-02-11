@@ -25,11 +25,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { SuccessModal } from "./success-modal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearError, registerUser } from "@/store/slices/authSlice";
 import { getAllUsers } from "@/store/slices/userSlice";
-import { FailedModal } from "./FailedModal";
 import { ChevronDown, CheckCircle2, AlertCircle } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 import { isRole } from "@/utils/helpers";
@@ -79,11 +77,14 @@ export function CreateAccountModal({
       dispatch(getAllUsers());
       toast({
         duration: 3000,
-        className: "sm:w-[380px] w-[200px] bg-white rounded-[8px] border-none p-0 flex items-center justify-center",
+        className:
+          "sm:w-[380px] w-[200px] bg-white rounded-[8px] border-none p-0 flex items-center justify-center",
         description: (
           <div className="flex flex-col items-center justify-center p-3 w-full">
             <CheckCircle2 className="w-16 h-16 text-[#14ae5c] mb-4" />
-            <p className="text-xl font-semibold text-center w-full">A new account created</p>
+            <p className="text-xl font-semibold text-center w-full">
+              A new account created
+            </p>
           </div>
         ),
       });
@@ -91,11 +92,14 @@ export function CreateAccountModal({
     } else if (!loading && status === "error") {
       toast({
         duration: 3000,
-        className: "sm:w-[380px] w-[200px] bg-white rounded-[8px] border-none p-0 flex items-center justify-center",
+        className:
+          "sm:w-[380px] w-[200px] bg-white rounded-[8px] border-none p-0 flex items-center justify-center",
         description: (
           <div className="flex flex-col items-center justify-center p-3 w-full">
             <AlertCircle className="h-10 w-10 text-[#ec221f]" />
-            <p className="text-xl font-semibold text-center w-full">{registerError || "Failed to register"}</p>
+            <p className="text-xl font-semibold text-center w-full">
+              {registerError || "Failed to register"}
+            </p>
           </div>
         ),
       });

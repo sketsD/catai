@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LogoutModal } from "@/components/logout-modal";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearError, getCurrentUser } from "@/store/slices/userSlice";
 import { Spinner } from "@/components/ui/spinner";
 import { UpdateAccountModal } from "@/components/update-account-modal";
-import { current } from "@reduxjs/toolkit";
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {

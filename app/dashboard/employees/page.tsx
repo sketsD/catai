@@ -12,15 +12,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import SortIcon from "@/components/SortIcon";
-import { FilterSelect } from "@/components/filter-select";
+import SortIcon from "@/components/ui/SortIcon";
+import { FilterSelect, FilterStateUsers } from "@/components/filter-select";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Spinner } from "@/components/ui/spinner";
-import { getAllUsers, clearError } from "@/store/slices/userSlice";
+import {
+  getAllUsers,
+  clearError,
+  selectFilteredUsers,
+} from "@/store/slices/userSlice";
 import { isRole } from "@/utils/helpers";
 import { useRouter } from "next/navigation";
-
-const getBadgeColor = (role: string) => {
+// import { getBadgeColor } from "@/utils/helpers";
+export const getBadgeColor = (role: string) => {
   switch (role) {
     case "pharm":
       return "bg-blue-500 hover:bg-blue-500";
@@ -36,62 +40,54 @@ const getBadgeColor = (role: string) => {
 export default function EmployeesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const dispatch = useAppDispatch();
-  const { users, loading, error, status } = useAppSelector((state) => {
-    console.log(state.user);
-    return state.user;
-  });
-  const { userid } = useAppSelector((state) => state.auth);
-  const router = useRouter();
-
-  useEffect(() => {
-    console.log(status + " mount employees + id");
-    dispatch(getAllUsers());
-    return () => {
-      dispatch(clearError());
-      console.log(status + " unmount employees + id");
-    };
-  }, []);
-
-  // Filter employees based on search query
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [filters, setFilters] = useState({
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [filters, setFilters] = useState<FilterStateUsers>({
     all: true,
     pharm: false,
     tech: false,
     admin: false,
   });
+  const dispatch = useAppDispatch();
+  const { userid } = useAppSelector((state) => state.auth);
+  const { users, loading, error, status } = useAppSelector(
+    (state) => state.user
+  );
+  const router = useRouter();
 
-  const filteredAndSortedEmployees = useMemo(() => {
-    return users
-      .filter((user) => {
-        const matchesSearch =
-          user.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.surname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.role.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesType =
-          filters.all ||
-          filters[user.role.toLowerCase() as keyof typeof filters];
-        return matchesSearch && matchesType;
-      })
-      .sort((a, b) => {
-        if (sortOrder === "asc") {
-          return a.id.localeCompare(b.id);
-        } else {
-          return b.id.localeCompare(a.id);
-        }
-      });
-  }, [
-    searchQuery,
-    filters,
-    sortOrder,
-    dispatch,
-    getAllUsers,
-    clearError,
-    // status,
-    loading,
-  ]);
+  const filteredUsers = useAppSelector((state) =>
+    selectFilteredUsers(state, filters, searchQuery, sortOrder)
+  );
+  useEffect(() => {
+    if (!loading) {
+      dispatch(getAllUsers());
+    }
+    return () => {
+      dispatch(clearError());
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log(
+      "[Users] State update - loading:",
+      loading,
+      "status:",
+      status,
+      "error:",
+      error
+    );
+    console.log("[Users] Filtered users count:", filteredUsers.length);
+  }, [loading, status, error, filteredUsers]);
+  // Filter employees based on search query
+
+  const handleFilter = (filterState: FilterStateUsers) => {
+    console.log("[Users] Applying filters:", filterState);
+    setFilters(filterState);
+  };
+
+  const handleSortOrderChange = (order: "asc" | "desc") => {
+    console.log("[Users] Changing sort order to:", order);
+    setSortOrder(order);
+  };
 
   if (loading)
     return (
@@ -125,7 +121,7 @@ export default function EmployeesPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <FilterSelect onFilterChange={setFilters} />
+                <FilterSelect onFilterChange={handleFilter} />
                 <Popover>
                   <PopoverTrigger asChild className="border-0 w-24">
                     <Button className="p-0 text-lg rounded-[8px] hover:bg-color-gray-200">
@@ -142,7 +138,7 @@ export default function EmployeesPage() {
                             ? "text-logoblue bg-color-gray-200"
                             : "hover:text-logoblue"
                         }`}
-                        onClick={() => setSortOrder("asc")}
+                        onClick={() => handleSortOrderChange("asc")}
                       >
                         Ascending
                       </Button>
@@ -153,7 +149,7 @@ export default function EmployeesPage() {
                             ? "text-logoblue bg-color-gray-200"
                             : "hover:text-logoblue"
                         }`}
-                        onClick={() => setSortOrder("desc")}
+                        onClick={() => handleSortOrderChange("desc")}
                       >
                         Descending
                       </Button>
@@ -171,12 +167,14 @@ export default function EmployeesPage() {
 
             <div className="">
               <div className="hidden sm:grid sm:grid-cols-[1fr,100px] items-center gap-4 p-4">
-                <div className="font-medium text-color-gray-400">ID / Full Name</div>
-                <div className="font-medium text-center text-color-gray-400 text-right">
+                <div className="font-medium text-color-gray-400">
+                  ID / Full Name
+                </div>
+                <div className="font-medium text-color-gray-400 text-right">
                   User type
                 </div>
               </div>
-              {filteredAndSortedEmployees.map((user) => (
+              {filteredUsers.map((user) => (
                 <div
                   key={user.id}
                   className="border-[1px] border-color-gray-250 mb-4 rounded-[8px]"
@@ -190,8 +188,13 @@ export default function EmployeesPage() {
                     className="flex flex-wrap sm:grid grid-cols-[minmax(0,1fr),100px] items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer "
                   >
                     <div>
-                      <div className="truncate text-gray-600 text-sm">{user.id}</div>
-                      <div className="truncate font-medium">{user.firstname} {user.surname}{userid === user.id && " (You)"}</div>
+                      <div className="truncate text-gray-600 text-sm">
+                        {user.id}
+                      </div>
+                      <div className="truncate font-medium">
+                        {user.firstname} {user.surname}
+                        {userid === user.id && " (You)"}
+                      </div>
                     </div>
                     <div className="flex justify-end">
                       <Badge
@@ -205,7 +208,7 @@ export default function EmployeesPage() {
                   </Link>
                 </div>
               ))}
-              {filteredAndSortedEmployees.length === 0 && (
+              {filteredUsers.length === 0 && (
                 <div className="p-4 text-center text-gray-500">
                   No employees found
                 </div>

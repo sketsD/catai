@@ -1,5 +1,5 @@
 import Image from "next/image";
-import LogoBlack from "./LogoBlack";
+import LogoBlack from "./ui/LogoBlack";
 import logo2 from "../assets/logo2.jpg";
 
 const LoginTemplate = () => {

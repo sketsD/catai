@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,19 +14,8 @@ import {
 } from "@/components/ui/popover";
 import { DeclineModal } from "@/components/decline-modal";
 import { ApproveModal } from "@/components/approve-modal";
-import FilterIcon from "@/components/FilterIcon";
-import SortIcon from "@/components/SortIcon";
-import StarIcon from "@/components/StarIcon";
-import placeholder from "@/assets/image-placeholder.jpg";
 import PencilIcon from "@/components/ui/pencilIcon";
-import DeclineIcon from "@/components/DeclineIcon";
-import CheckIconSmall from "@/components/CheckIconSmall";
-import MarkExcl from "@/components/MarkExcl";
-import A from "@/components/A";
-import Drop from "@/components/Drop";
-import Pills from "@/components/Pills";
-import Pharmacist from "@/components/Pharmacist";
-import ClockIcon from "@/components/ClockIcon";
+import CheckIconSmall from "@/components/ui/CheckIconSmall";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { getMedicineByName } from "@/store/slices/medicineSlice";
 import { Medicine, LASAAnalysisResponse } from "@/types/global";
@@ -38,7 +26,16 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { getPublicS3Url } from "@/utils/s3Utils";
 import { ImagePreviewModal } from "@/components/image-preview-modal";
-import { getLocalStorage } from '@/utils/localStorage';
+import { getLocalStorage } from "@/utils/localStorage";
+import { getStatusBadgeStyle } from "@/utils/helpers";
+import SimilarityCard from "@/components/similarityCard";
+import DeclineIcon from "@/components/ui/DeclineIcon";
+import FilterIcon from "@/components/ui/FilterIcon";
+import SortIcon from "@/components/ui/SortIcon";
+import Pharmacist from "@/components/ui/Pharmacist";
+import StarIcon from "@/components/ui/StarIcon";
+import ClockIcon from "@/components/ui/ClockIcon";
+import Pills from "@/components/ui/Pills";
 
 // Mock data - would come from API in real app
 // const initialMedicineData = {
@@ -80,115 +77,6 @@ const remarks = [
   },
 ];
 
-function SimilarityCard({
-  name,
-  totalSimilarity,
-  visualSimilarity,
-  textSimilarity,
-  boxSimilarity,
-  images,
-  isExpanded,
-  onToggleExpand,
-}: {
-  name: string;
-  totalSimilarity: number;
-  visualSimilarity: number;
-  textSimilarity: number;
-  boxSimilarity: number;
-  images: { url: string }[];
-  isExpanded: boolean;
-  onToggleExpand: () => void;
-}) {
-  return (
-    <div className="rounded-lg border border-[#e5e5e5] p-4 sm:p-6">
-      <div className="flex flex-col items-start gap-4">
-        <div className="flex-1 w-full">
-          <div className="flex items-center justify-between flex-wrap">
-            <div className="flex items-center gap-4 xl:m-0 mr-4">
-              <div className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-[8px]">
-                <Image
-                  src={placeholder}
-                  alt={name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <h3 className="text-base font-medium">{name}</h3>
-            </div>
-            <Button
-              variant="link"
-              className="h-auto p-0 text-[#0066ff] xl:m-0 mt-2"
-              onClick={onToggleExpand}
-            >
-              {isExpanded ? "Show Less" : "Show More"}
-            </Button>
-          </div>
-          {isExpanded && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {images.map((image, index) => (
-                <div
-                  key={index}
-                  className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-[8px]"
-                >
-                  <Image
-                    src={image.url || "/placeholder.svg"}
-                    alt={`Medicine ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="mt-6">
-            <div className="flex items-center">
-              <span className="">Similarity Score</span>
-              <MarkExcl />
-            </div>
-            <div className=" mt-2 flex gap-6 flex-wrap">
-              <div
-                className={`flex flex-col items-center justify-center w-32 h-32 rounded-[8px] p-2 text-center ${
-                  totalSimilarity >= 90
-                    ? "bg-color-red-danger"
-                    : "bg-color-yellow-danger"
-                }`}
-              >
-                <div className="font-bold text-3xl">{totalSimilarity}%</div>
-                <div className="text-xl">Total Similarity</div>
-              </div>
-              <div className="flex flex-col items-center justify-center w-32 h-32 rounded-[8px] bg-color-gray-200 p-2 text-center gap-1">
-                <div className="h-10 w-10 rounded-full bg-color-red-danger flex justify-center items-center text-white">
-                  <A />
-                </div>
-                <div className="flex items-center justify-center font-bold  text-2xl">
-                  {visualSimilarity}%
-                </div>
-                <div className="text-lg text-color-gray-400">By Visual</div>
-              </div>
-              <div className="flex flex-col items-center justify-center w-32 h-32 rounded-[8px] bg-color-gray-200 p-2 text-center gap-1">
-                <div className="h-10 w-10 rounded-full bg-color-red-danger flex justify-center items-center text-white">
-                  <Drop />
-                </div>
-                <div className="font-bold text-2xl">{textSimilarity}%</div>
-                <div className="text-lg text-color-gray-400">By Text</div>
-              </div>
-              <div className="flex flex-col items-center justify-center w-32 h-32 rounded-[8px] bg-color-gray-200 p-2 text-center gap-1">
-                <div className="h-10 w-10 rounded-full bg-color-yellow-danger flex justify-center items-center text-white">
-                  <Pills />
-                </div>
-                <div className="flex items-center justify-center font-bold text-2xl ">
-                  {boxSimilarity}%
-                </div>
-                <div className="text-lg text-color-gray-400">By Box</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function MedicineDetailPage({
   params,
 }: {
@@ -201,7 +89,7 @@ export default function MedicineDetailPage({
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("medication");
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  // const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showAllImages, setShowAllImages] = useState(false);
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
   const [starredOnly, setStarredOnly] = useState(false);
@@ -210,21 +98,23 @@ export default function MedicineDetailPage({
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<Medicine | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [lasaData, setLasaData] = useState<LASAAnalysisResponse | null>(null);
+  const [lasaData, setLasaData] = useState<Array<LASAAnalysisResponse> | null>(
+    null
+  );
   const [lasaLoading, setLasaLoading] = useState(false);
   const [lasaError, setLasaError] = useState<string | null>(null);
 
   const fetchLASAAnalysis = useCallback(async () => {
     try {
       const token = getLocalStorage("auth-token");
-      if (!token || !params.id) return;
+      if (!token || !currentMedicine?.at(0)) return;
 
       setLasaLoading(true);
       setLasaError(null);
       console.log("[View] Starting LASA fetch");
       const response = await medicineService.getLASAAnalysis({
-        responseId: params.id,
-        token
+        responseId: currentMedicine.at(0)?.response_id as string,
+        token,
       });
       console.log("[View] LASA fetch success:", response.data);
       setLasaData(response.data);
@@ -234,18 +124,26 @@ export default function MedicineDetailPage({
       console.log("[View] Error response:", error.response);
       console.log("[View] Current lasaData state:", lasaData);
       // Обрабатываем ошибку axios
-      const errorMessage = error?.response?.data?.detail || // API error detail
-                          error?.message || // Axios error message
-                          error?.response?.data?.message || // API error message
-                          "Failed to load LASA analysis";
+      const errorMessage =
+        error?.response?.data?.detail || // API error detail
+        error?.message || // Axios error message
+        error?.response?.data?.message || // API error message
+        "Failed to load LASA analysis";
       console.log("[View] Setting error message:", errorMessage);
       setLasaData(null); // Очищаем данные при ошибке
       setLasaError(errorMessage);
     } finally {
       setLasaLoading(false);
-      console.log("[View] Final states - error:", lasaError, "data:", lasaData, "loading:", lasaLoading);
+      console.log(
+        "[View] Final states - error:",
+        lasaError,
+        "data:",
+        lasaData,
+        "loading:",
+        lasaLoading
+      );
     }
-  }, [params.id]);
+  }, [currentMedicine]);
 
   useEffect(() => {
     dispatch(getMedicineByName(params.id));
@@ -259,13 +157,13 @@ export default function MedicineDetailPage({
 
   useEffect(() => {
     fetchLASAAnalysis();
-  }, [params.id, fetchLASAAnalysis]);
+  }, [params.id, currentMedicine, fetchLASAAnalysis]);
 
   const data = currentMedicine?.at(0);
 
-  const handleToggleExpand = (name: string) => {
-    setExpandedCard(expandedCard === name ? null : name);
-  };
+  // const handleToggleExpand = (name: string) => {
+  //   setExpandedCard(expandedCard === name ? null : name);
+  // };
 
   const handleDecline = async (reason: string) => {
     try {
@@ -276,20 +174,26 @@ export default function MedicineDetailPage({
       await medicineService.updateMedicineStatus({
         medicine: data as Medicine,
         token,
-        newStatus: "completed"
+        newStatus: "completed",
       });
-      
+
       toast({
         className: "bg-white border-none",
         description: (
           <div className="flex flex-col items-center justify-center p-3 w-full bg-white">
             <CheckCircle2 className="w-16 h-16 text-[#14ae5c] mb-4" />
-            <p className="text-xl font-semibold text-center w-full">Medicine status updated to Completed</p>
-            {reason && <p className="text-sm text-gray-500 text-center">Reason: {reason}</p>}
+            <p className="text-xl font-semibold text-center w-full">
+              Medicine status updated to Completed
+            </p>
+            {reason && (
+              <p className="text-sm text-gray-500 text-center">
+                Reason: {reason}
+              </p>
+            )}
           </div>
         ),
       });
-      
+
       setShowDeclineModal(false);
       // Refresh the medicine data
       dispatch(getMedicineByName(params.id));
@@ -301,7 +205,9 @@ export default function MedicineDetailPage({
         description: (
           <div className="flex flex-col items-center justify-center p-3 w-full bg-white">
             <AlertCircle className="h-10 w-10 text-[#ec221f]" />
-            <p className="text-xl font-semibold text-center w-full">Failed to update medicine status</p>
+            <p className="text-xl font-semibold text-center w-full">
+              Failed to update medicine status
+            </p>
           </div>
         ),
       });
@@ -317,21 +223,23 @@ export default function MedicineDetailPage({
       await medicineService.updateMedicineStatus({
         medicine: data as Medicine,
         token,
-        newStatus: "approved"
+        newStatus: "approved",
       });
-      
+
       toast({
         className: "bg-white border-none",
         description: (
           <div className="flex flex-col items-center justify-center p-3 w-full bg-white">
             <CheckCircle2 className="w-16 h-16 text-[#14ae5c] mb-4" />
-            <p className="text-xl font-semibold text-center w-full">Medicine status updated to Approved</p>
+            <p className="text-xl font-semibold text-center w-full">
+              Medicine status updated to Approved
+            </p>
           </div>
         ),
       });
 
       setShowApproveModal(false);
-      
+
       // Refresh the medicine data after a delay
       setTimeout(() => {
         dispatch(getMedicineByName(params.id));
@@ -344,7 +252,9 @@ export default function MedicineDetailPage({
         description: (
           <div className="flex flex-col items-center justify-center p-3 w-full bg-white">
             <AlertCircle className="h-10 w-10 text-[#ec221f]" />
-            <p className="text-xl font-semibold text-center w-full">Failed to update medicine status</p>
+            <p className="text-xl font-semibold text-center w-full">
+              Failed to update medicine status
+            </p>
           </div>
         ),
       });
@@ -368,32 +278,34 @@ export default function MedicineDetailPage({
       if (!token) {
         throw new Error("No authentication token found");
       }
-      const response = await medicineService.updateMedicine({ 
+      const response = await medicineService.updateMedicine({
         medicine: editedData,
         originalMedicine: data,
-        token 
+        token,
       });
-      
+
       // If medicine name was updated, update the URL and redirect
       if (editedData.product_name !== data.product_name) {
         router.replace(`/dashboard/medicines/${editedData.product_name}`);
       }
-      
+
       // Refresh the data with new name if changed
       dispatch(getMedicineByName(editedData.product_name as string));
-      
+
       // Show success message with updated fields
       const updatedFields = Object.entries(response)
         .filter(([_, updated]) => updated)
         .map(([field]) => field)
         .join(", ");
-      
+
       if (updatedFields) {
         toast({
           description: (
             <div className="flex flex-col items-center justify-center p-3 w-full bg-white">
               <CheckCircle2 className="w-16 h-16 text-[#14ae5c] mb-4" />
-              <p className="text-xl font-semibold text-center w-full">Medicine successfully updated</p>
+              <p className="text-xl font-semibold text-center w-full">
+                Medicine successfully updated
+              </p>
             </div>
           ),
           className: "bg-white border-none",
@@ -403,13 +315,15 @@ export default function MedicineDetailPage({
           description: (
             <div className="flex flex-col items-center justify-center p-3 w-full bg-white">
               <AlertCircle className="h-10 w-10 text-[#14ae5c]" />
-              <p className="text-xl font-semibold text-center w-full">No changes were made</p>
+              <p className="text-xl font-semibold text-center w-full">
+                No changes were made
+              </p>
             </div>
           ),
           className: "bg-white border-none",
         });
       }
-      
+
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update medicine:", error);
@@ -418,7 +332,9 @@ export default function MedicineDetailPage({
         description: (
           <div className="flex flex-col items-center justify-center p-3 w-full">
             <AlertCircle className="h-10 w-10 text-[#ec221f]" />
-            <p className="text-xl font-semibold text-center w-full">Failed to update medicine</p>
+            <p className="text-xl font-semibold text-center w-full">
+              Failed to update medicine
+            </p>
           </div>
         ),
       });
@@ -481,7 +397,7 @@ export default function MedicineDetailPage({
         <div className="flex-[58%] flex flex-col gap-6 overflow-y-auto bg-white border-[1px] border-color-gray-250 rounded-[8px]">
           <div className="p-2 sm:p-6 min-h-[calc(100vh-3rem)]">
             <div className="">
-              <Button 
+              <Button
                 variant="link"
                 className="p-0 h-auto text-logoblue hover:underline"
                 onClick={() => router.back()}
@@ -503,8 +419,8 @@ export default function MedicineDetailPage({
                     onClick={() => setSelectedImage(image)}
                   >
                     <Image
-                      src={getPublicS3Url(image)}
-                      alt={`Medicine ${index + 1}`}
+                      src={getPublicS3Url(image as string)}
+                      alt={`Medicine ${data.product_name} ${index + 1}`}
                       fill
                       className="object-cover"
                     />
@@ -533,11 +449,9 @@ export default function MedicineDetailPage({
               <div className="flex flex-col items-start gap-1">
                 <Badge
                   variant="outline"
-                  className={`whitespace-nowrap py-2 ${
-                    data.status === "pending"
-                      ? "border-[#fdd3d0] bg-[#fdd3d0] text-[#ec221f]"
-                      : "border-[#ddc3ff] bg-[#ddc3ff] text-[#7307ff]"
-                  }
+                  className={`whitespace-nowrap py-2 ${getStatusBadgeStyle(
+                    data.status as string
+                  )}
                 `}
                 >
                   {data.status}
@@ -575,7 +489,11 @@ export default function MedicineDetailPage({
                     </Button>
                     <Button
                       variant="ghost"
-                      className={`flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 text-[#ec221f] rounded-[8px] mt-2 sm:mt-0 hover:bg-red-50 [&>svg]:text-[#ec221f] ${data.status === "completed" ? "opacity-50 cursor-not-allowed" : ""}`}
+                      className={`flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 border-color-red-danger border-[1px] text-[#ec221f] rounded-[8px] mt-2 sm:mt-0 hover:bg-red-50 [&>svg]:text-[#ec221f] ${
+                        data.status === "completed"
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
                       onClick={() => setShowDeclineModal(true)}
                       disabled={data.status === "completed"}
                     >
@@ -583,7 +501,11 @@ export default function MedicineDetailPage({
                       Decline
                     </Button>
                     <Button
-                      className={`flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 bg-[#14ae5c] text-white rounded-[8px] mt-2 sm:mt-0 hover:bg-[#119a50] [&>svg]:text-white ${data.status === "approved" ? "opacity-50 cursor-not-allowed" : ""}`}
+                      className={`flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 bg-[#14ae5c] text-white rounded-[8px] mt-2 sm:mt-0 hover:bg-[#119a50] [&>svg]:text-white ${
+                        data.status === "approved"
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
                       onClick={handleApprove}
                       disabled={data.status === "approved"}
                     >
@@ -668,45 +590,67 @@ export default function MedicineDetailPage({
                     <div>
                       <label className="block text-sm mb-1">Product Name</label>
                       <Input
-                        value={editedData?.product_name || ''}
+                        value={editedData?.product_name || ""}
                         readOnly={!isEditing}
-                        onChange={(e) => handleInputChange('product_name', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("product_name", e.target.value)
+                        }
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />
                     </div>
                     <div>
                       <label className="block text-sm mb-1">Category</label>
                       <Input
-                        value={editedData?.category || ''}
+                        value={editedData?.category || ""}
                         readOnly={!isEditing}
-                        onChange={(e) => handleInputChange('category', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("category", e.target.value)
+                        }
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm mb-1">Intake Method</label>
+                      <label className="block text-sm mb-1">
+                        Intake Method
+                      </label>
                       <Input
-                        value={editedData?.intake_method || ''}
+                        value={editedData?.intake_method || ""}
                         readOnly={!isEditing}
-                        onChange={(e) => handleInputChange('intake_method', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("intake_method", e.target.value)
+                        }
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm mb-1">Manufactured country</label>
+                      <label className="block text-sm mb-1">
+                        Manufactured country
+                      </label>
                       <Input
-                        value={editedData?.manufacturing_country || ''}
+                        value={editedData?.manufacturing_country || ""}
                         readOnly={!isEditing}
-                        onChange={(e) => handleInputChange('manufacturing_country', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "manufacturing_country",
+                            e.target.value
+                          )
+                        }
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm mb-1">Country of registration</label>
+                      <label className="block text-sm mb-1">
+                        Country of registration
+                      </label>
                       <Input
-                        value={editedData?.country_registration || ''}
+                        value={editedData?.country_registration || ""}
                         readOnly={!isEditing}
-                        onChange={(e) => handleInputChange('country_registration', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "country_registration",
+                            e.target.value
+                          )
+                        }
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />
                     </div>
@@ -715,18 +659,22 @@ export default function MedicineDetailPage({
                   <div className="space-y-4">
                     <h2 className="font-semibold">Identification Data</h2>
                     <div>
-                      <label className="block text-sm mb-1">Catalog Number / Barcode</label>
+                      <label className="block text-sm mb-1">
+                        Catalog Number / Barcode
+                      </label>
                       <Input
-                        value={editedData?.barcode || ''}
+                        value={editedData?.barcode || ""}
                         readOnly={!isEditing}
-                        onChange={(e) => handleInputChange('barcode', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("barcode", e.target.value)
+                        }
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />
                     </div>
                     <div>
                       <label className="block text-sm mb-1">ID</label>
                       <Input
-                        value={editedData?.metadata_id || ''}
+                        value={editedData?.metadata_id || ""}
                         readOnly={true}
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />
@@ -734,18 +682,24 @@ export default function MedicineDetailPage({
                     <div>
                       <label className="block text-sm mb-1">Logistic</label>
                       <Input
-                        value={editedData?.manufacturer || ''}
+                        value={editedData?.manufacturer || ""}
                         readOnly={!isEditing}
-                        onChange={(e) => handleInputChange('manufacturer', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("manufacturer", e.target.value)
+                        }
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm mb-1">Quantity in packaging</label>
+                      <label className="block text-sm mb-1">
+                        Quantity in packaging
+                      </label>
                       <Input
-                        value={editedData?.type_packaging || ''}
+                        value={editedData?.type_packaging || ""}
                         readOnly={!isEditing}
-                        onChange={(e) => handleInputChange('type_packaging', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("type_packaging", e.target.value)
+                        }
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />
                     </div>
@@ -899,23 +853,26 @@ export default function MedicineDetailPage({
           <div className="w-full border-[1px] border-color-gray-250 rounded-[8px]">
             <div className="bg-white min-h-[calc(100vh-3rem)] p-4 sm:p-6 rounded-[8px]">
               <h2 className="mb-4 text-xl font-semibold">LASA Analysis</h2>
-              <h3 className="mb-6">
-                Results for: {data.product_name}
-              </h3>
+              <h3 className="mb-6">Results for: {data.product_name}</h3>
 
               <div className="space-y-6">
                 {lasaLoading ? (
                   <div className="flex flex-col justify-center items-center min-h-[200px] gap-4">
-                    <Spinner className="w-8 h-8" />
+                    {/* <Spinner className="w-8 h-8" /> */}
+                    <Spinner />
                     <p className="text-gray-500">Loading LASA analysis...</p>
                   </div>
                 ) : lasaError ? (
                   <div className="flex flex-col items-center justify-center min-h-[200px] p-6 bg-red-50 rounded-lg border border-red-200">
                     <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                    <p className="text-red-600 text-center font-medium mb-2">Error Loading LASA Analysis</p>
-                    <p className="text-red-500 text-center text-sm">{lasaError}</p>
-                    <Button 
-                      variant="outline" 
+                    <p className="text-red-600 text-center font-medium mb-2">
+                      Error Loading LASA Analysis
+                    </p>
+                    <p className="text-red-500 text-center text-sm">
+                      {lasaError}
+                    </p>
+                    <Button
+                      variant="outline"
                       className="mt-4 text-red-600 border-red-200 hover:bg-red-50"
                       onClick={() => {
                         setLasaError(null);
@@ -926,23 +883,46 @@ export default function MedicineDetailPage({
                     </Button>
                   </div>
                 ) : lasaData ? (
-                  <SimilarityCard
-                    name={lasaData.ProductName}
-                    totalSimilarity={Math.max(...lasaData.TextSimilarity, ...lasaData.ImageSimilarity)}
-                    visualSimilarity={Math.max(...lasaData.ImageSimilarity)}
-                    textSimilarity={Math.max(...lasaData.TextSimilarity)}
-                    boxSimilarity={Math.max(...lasaData.ImageSimilarity)}
-                    images={lasaData.TextSimilarityImages.map(url => ({ url }))}
-                    isExpanded={expandedCard === lasaData.ProductName}
-                    onToggleExpand={() => handleToggleExpand(lasaData.ProductName)}
-                  />
+                  lasaData.map((data, index) => (
+                    <SimilarityCard
+                      key={index + 1}
+                      name={data.ProductName}
+                      ImageLocation={data.ImageLocation}
+                      totalSimilarity={Math.round(
+                        Math.max(
+                          ...data.TextSimilarity,
+                          ...data.ImageSimilarity
+                        ) * 100
+                      )}
+                      visualSimilarity={Math.round(
+                        Math.max(...data.ImageSimilarity) * 100
+                      )}
+                      textSimilarity={Math.round(
+                        Math.max(...data.TextSimilarity) * 100
+                      )}
+                      boxSimilarity={Math.round(
+                        Math.max(...data.ImageSimilarity) * 100
+                      )}
+                      images={data.SimilarImagesLocation.map((url) => ({
+                        url,
+                      }))}
+                      // isExpanded={expandedCard === data.ProductName}
+                      // onToggleExpand={() =>
+                      //   handleToggleExpand(data.ProductName)
+                      // }
+                    />
+                  ))
                 ) : (
                   <div className="flex flex-col items-center justify-center min-h-[200px] p-6 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                       <Pills className="w-8 h-8 text-gray-400" />
                     </div>
-                    <p className="text-gray-600 text-center font-medium">No LASA Analysis Available</p>
-                    <p className="text-gray-500 text-center text-sm mt-2">No similar medicines were found for this product</p>
+                    <p className="text-gray-600 text-center font-medium">
+                      No LASA Analysis Available
+                    </p>
+                    <p className="text-gray-500 text-center text-sm mt-2">
+                      No similar medicines were found for this product
+                    </p>
                   </div>
                 )}
               </div>

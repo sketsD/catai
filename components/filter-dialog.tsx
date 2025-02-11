@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import FilterIcon from "./FilterIcon";
+import FilterIcon from "./ui/FilterIcon";
 import { useAppSelector } from "@/store/hooks";
 import { selectUniqueCategories } from "@/store/slices/medicineSlice";
 import { RootState } from "@/store/store";
@@ -34,11 +34,11 @@ export interface FilterState {
 
 export function FilterDialog({ onFilterChange }: FilterDialogProps) {
   const categories = useAppSelector(selectUniqueCategories);
-  
+
   // Создаем начальное состояние с динамическими категориями
   const initialGroupType = {
     all: true,
-    ...Object.fromEntries(categories.map(category => [category, false]))
+    ...Object.fromEntries(categories.map((category) => [category, false])),
   };
 
   const [filters, setFilters] = React.useState<FilterState>({
@@ -54,26 +54,29 @@ export function FilterDialog({ onFilterChange }: FilterDialogProps) {
     // Создаем новый объект только с актуальными категориями
     const newGroupType = {
       all: filters.groupType.all,
-      ...Object.fromEntries(categories.map(category => [
-        category,
-        // Сохраняем предыдущее состояние категории, если она была
-        filters.groupType[category] || false
-      ]))
+      ...Object.fromEntries(
+        categories.map((category) => [
+          category,
+          // Сохраняем предыдущее состояние категории, если она была
+          filters.groupType[category] || false,
+        ])
+      ),
     };
-    
+
     // Если ни одна категория не выбрана (кроме all), включаем all
-    const hasSelectedCategory = Object.entries(newGroupType)
-      .some(([k, v]) => k !== "all" && v);
-    
+    const hasSelectedCategory = Object.entries(newGroupType).some(
+      ([k, v]) => k !== "all" && v
+    );
+
     if (!hasSelectedCategory) {
       newGroupType.all = true;
     }
-    
+
     const newFilters = {
       ...filters,
       groupType: newGroupType,
     };
-    
+
     setFilters(newFilters);
     onFilterChange(newFilters);
   }, [categories]);
@@ -83,7 +86,7 @@ export function FilterDialog({ onFilterChange }: FilterDialogProps) {
 
     if (key === "all") {
       // Если выбрано "All", сбрасываем все остальные
-      Object.keys(newGroupType).forEach(k => {
+      Object.keys(newGroupType).forEach((k) => {
         newGroupType[k] = k === "all";
       });
     } else {
@@ -92,8 +95,9 @@ export function FilterDialog({ onFilterChange }: FilterDialogProps) {
       newGroupType[key] = !newGroupType[key];
 
       // Если ни одна категория не выбрана, включаем "All"
-      const hasSelectedCategory = Object.entries(newGroupType)
-        .some(([k, v]) => k !== "all" && v);
+      const hasSelectedCategory = Object.entries(newGroupType).some(
+        ([k, v]) => k !== "all" && v
+      );
       if (!hasSelectedCategory) {
         newGroupType.all = true;
       }
@@ -109,7 +113,7 @@ export function FilterDialog({ onFilterChange }: FilterDialogProps) {
 
   const handleDateChange = (key: keyof typeof filters.date) => {
     const newDate = { ...filters.date };
-    
+
     // Если фильтр уже включен, выключаем его
     if (newDate[key]) {
       newDate[key] = false;
@@ -151,7 +155,7 @@ export function FilterDialog({ onFilterChange }: FilterDialogProps) {
     const newFilters = {
       groupType: {
         all: true,
-        ...Object.fromEntries(categories.map(category => [category, false]))
+        ...Object.fromEntries(categories.map((category) => [category, false])),
       },
       date: {
         oneDay: false,
@@ -172,7 +176,10 @@ export function FilterDialog({ onFilterChange }: FilterDialogProps) {
           </Button>
         </PopoverTrigger>
         {hasActiveFilters && (
-          <div className="absolute -right-1 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-logoblue flex items-center justify-center cursor-pointer" onClick={resetFilters}>
+          <div
+            className="absolute -right-1 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-logoblue flex items-center justify-center cursor-pointer"
+            onClick={resetFilters}
+          >
             <X className="h-2 w-2 text-white" />
           </div>
         )}
@@ -218,17 +225,24 @@ export function FilterDialog({ onFilterChange }: FilterDialogProps) {
                   All
                 </Label>
               </div>
-              {categories.map(category => (
-                <div key={category} className={getItemStyle(filters.groupType[category])}>
+              {categories.map((category) => (
+                <div
+                  key={category}
+                  className={getItemStyle(filters.groupType[category])}
+                >
                   <Checkbox
                     id={category}
                     checked={filters.groupType[category]}
                     onCheckedChange={() => handleGroupTypeChange(category)}
-                    className={filters.groupType[category] ? "text-logoblue" : ""}
+                    className={
+                      filters.groupType[category] ? "text-logoblue" : ""
+                    }
                   />
                   <Label
                     htmlFor={category}
-                    className={filters.groupType[category] ? "text-logoblue" : ""}
+                    className={
+                      filters.groupType[category] ? "text-logoblue" : ""
+                    }
                   >
                     {category}
                   </Label>

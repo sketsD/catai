@@ -4,7 +4,7 @@ import { medicineService } from "@/utils/medicineService";
 import { compareAsc, compareDesc, parseISO } from "date-fns";
 import { FilterState } from "@/components/filter-dialog";
 import { RootState } from "../store";
-import { getLocalStorage } from '@/utils/localStorage';
+import { getLocalStorage } from "@/utils/localStorage";
 
 const initialState: MedicineState = {
   status: "idle",
@@ -20,7 +20,10 @@ export const getMedicineByStatus = createAsyncThunk<
   { rejectValue: string }
 >("medicine/getMedicineByStatus", async (status, { rejectWithValue }) => {
   try {
-    console.log("[Redux] Starting getMedicineByStatus thunk with status:", status);
+    console.log(
+      "[Redux] Starting getMedicineByStatus thunk with status:",
+      status
+    );
     const token = getLocalStorage("auth-token");
     if (!token) {
       console.error("[Redux] Token is not provided in getMedicineByStatus");
@@ -99,14 +102,20 @@ export const medicineSlice = createSlice({
         state.status = "idle";
       })
       .addCase(getMedicineByStatus.fulfilled, (state, action) => {
-        console.log("[Redux] getMedicineByStatus.fulfilled with medicines:", action.payload.length);
+        console.log(
+          "[Redux] getMedicineByStatus.fulfilled with medicines:",
+          action.payload.length
+        );
         state.loading = false;
         state.medicines = action.payload;
         state.error = null;
         state.status = "success";
       })
       .addCase(getMedicineByStatus.rejected, (state, action) => {
-        console.error("[Redux] getMedicineByStatus.rejected with error:", action.payload);
+        console.error(
+          "[Redux] getMedicineByStatus.rejected with error:",
+          action.payload
+        );
         state.loading = false;
         state.medicines = [];
         state.error = action.payload || "Loading failed";
@@ -119,13 +128,19 @@ export const medicineSlice = createSlice({
         state.currentMedicine = null;
       })
       .addCase(getMedicineByName.fulfilled, (state, action) => {
-        console.log("[Redux] getMedicineByName.fulfilled with medicine:", action.payload);
+        console.log(
+          "[Redux] getMedicineByName.fulfilled with medicine:",
+          action.payload
+        );
         state.loading = false;
         state.currentMedicine = [action.payload];
         state.error = null;
       })
       .addCase(getMedicineByName.rejected, (state, action) => {
-        console.error("[Redux] getMedicineByName.rejected with error:", action.payload);
+        console.error(
+          "[Redux] getMedicineByName.rejected with error:",
+          action.payload
+        );
         state.loading = false;
         state.currentMedicine = null;
         state.error = action.payload || "Failed to load medicine details";
@@ -136,20 +151,27 @@ export const medicineSlice = createSlice({
 // Селектор для получения уникальных категорий
 export const selectUniqueCategories = (state: RootState) => {
   // Сначала собираем все уникальные категории, которые есть у медикаментов
-  const categoriesWithMedicines = state.medicine.medicines.reduce((acc, medicine) => {
-    if (medicine.category && medicine.category !== "") {
-      acc.add(medicine.category);
-    }
-    return acc;
-  }, new Set<string>());
-  
+  const categoriesWithMedicines = state.medicine.medicines.reduce(
+    (acc, medicine) => {
+      if (medicine.category && medicine.category !== "") {
+        acc.add(medicine.category);
+      }
+      return acc;
+    },
+    new Set<string>()
+  );
+
   const sortedCategories = Array.from(categoriesWithMedicines).sort();
-  
+
   // Добавляем "No Category" только если есть медикаменты без категории
-  if (state.medicine.medicines.some(medicine => !medicine.category || medicine.category === "")) {
+  if (
+    state.medicine.medicines.some(
+      (medicine) => !medicine.category || medicine.category === ""
+    )
+  ) {
     sortedCategories.push("No Category");
   }
-  
+
   return sortedCategories;
 };
 

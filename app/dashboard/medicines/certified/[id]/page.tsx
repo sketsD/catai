@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,15 +13,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import placeholder from "@/assets/image-placeholder.jpg";
-import SortIcon from "@/components/SortIcon";
-import FilterIcon from "@/components/FilterIcon";
-import StarIcon from "@/components/StarIcon";
-import Pharmacist from "@/components/Pharmacist";
-import ClockIcon from "@/components/ClockIcon";
+import SortIcon from "@/components/ui/SortIcon";
+import FilterIcon from "@/components/ui/FilterIcon";
+import StarIcon from "@/components/ui/StarIcon";
+import Pharmacist from "@/components/ui/Pharmacist";
+import ClockIcon from "@/components/ui/ClockIcon";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { getMedicineByName } from "@/store/slices/medicineSlice";
-import { Medicine } from "@/types/global";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "next/navigation";
 import { getPublicS3Url } from "@/utils/s3Utils";
@@ -122,7 +119,7 @@ export default function CertifiedMedicineDetailPage({
       <div className="flex flex-col gap-6  overflow-y-auto bg-white border-[1px] border-color-gray-250 rounded-[8px]">
         <div className="p-2 sm:p-6 min-h-[calc(100vh-3rem)]">
           <div className="">
-            <Button 
+            <Button
               variant="link"
               className="p-0 h-auto text-logoblue hover:underline"
               onClick={() => router.back()}
@@ -268,7 +265,7 @@ export default function CertifiedMedicineDetailPage({
                   <div>
                     <label className="block text-sm mb-1">Product Name</label>
                     <Input
-                      value={data.product_name || ''}
+                      value={data.product_name || ""}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -276,7 +273,7 @@ export default function CertifiedMedicineDetailPage({
                   <div>
                     <label className="block text-sm mb-1">Category</label>
                     <Input
-                      value={data.category || ''}
+                      value={data.category || ""}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -284,7 +281,7 @@ export default function CertifiedMedicineDetailPage({
                   <div>
                     <label className="block text-sm mb-1">Intake Method</label>
                     <Input
-                      value={data.intake_method || ''}
+                      value={data.intake_method || ""}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -294,7 +291,7 @@ export default function CertifiedMedicineDetailPage({
                       Manufactured country
                     </label>
                     <Input
-                      value={data.manufacturing_country || ''}
+                      value={data.manufacturing_country || ""}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -304,7 +301,7 @@ export default function CertifiedMedicineDetailPage({
                       Country of registration
                     </label>
                     <Input
-                      value={data.country_registration || ''}
+                      value={data.country_registration || ""}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -318,7 +315,7 @@ export default function CertifiedMedicineDetailPage({
                       Catalog Number / Barcode
                     </label>
                     <Input
-                      value={data.barcode || ''}
+                      value={data.barcode || ""}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -326,7 +323,7 @@ export default function CertifiedMedicineDetailPage({
                   <div>
                     <label className="block text-sm mb-1">ID</label>
                     <Input
-                      value={data.metadata_id || ''}
+                      value={data.metadata_id || ""}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -334,7 +331,7 @@ export default function CertifiedMedicineDetailPage({
                   <div>
                     <label className="block text-sm mb-1">Manufacturer</label>
                     <Input
-                      value={data.manufacturer || ''}
+                      value={data.manufacturer || ""}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
@@ -344,7 +341,7 @@ export default function CertifiedMedicineDetailPage({
                       Type of packaging
                     </label>
                     <Input
-                      value={data.type_packaging || ''}
+                      value={data.type_packaging || ""}
                       readOnly
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />

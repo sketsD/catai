@@ -13,211 +13,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import Link from "next/link";
-import SortIcon from "@/components/SortIcon";
+import SortIcon from "@/components/ui/SortIcon";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   clearError,
   getMedicineByStatus,
   getMedicineData,
-  selectFilteredMedicines
+  selectFilteredMedicines,
 } from "@/store/slices/medicineSlice";
 import { Spinner } from "@/components/ui/spinner";
 import { format, formatDate, formatISO, parseISO } from "date-fns";
-
-// Mock data - would come from API in real app
-// const waitingMedicines = [
-//   {
-//     id: "1",
-//     name: "Cefotaxime Medo",
-//     date: "20/10/24",
-//     groupType: "Pharmacy",
-//     status: "Pending",
-//   },
-//   {
-//     id: "2",
-//     name: "Ibuprofen",
-//     date: "20/10/24",
-//     groupType: "Technical",
-//     status: "Pending",
-//   },
-//   {
-//     id: "3",
-//     name: "Paracetamol",
-//     date: "20/10/24",
-//     groupType: "Technical",
-//     status: "Pending",
-//   },
-//   {
-//     id: "4",
-//     name: "Metformin",
-//     date: "19/10/24",
-//     groupType: "Pharmacy",
-//     status: "Pending",
-//   },
-//   {
-//     id: "5",
-//     name: "Omeprazole",
-//     date: "18/10/24",
-//     groupType: "Pharmacy",
-//     status: "Pending",
-//   },
-//   {
-//     id: "6",
-//     name: "Doxycycline",
-//     date: "17/10/24",
-//     groupType: "Technical",
-//     status: "Pending",
-//   },
-//   {
-//     id: "7",
-//     name: "Amoxicillin",
-//     date: "20/10/24",
-//     groupType: "Pharmacy",
-//     status: "Pending",
-//   },
-//   {
-//     id: "8",
-//     name: "Aspirin",
-//     date: "20/10/24",
-//     groupType: "Technical",
-//     status: "Pending",
-//   },
-//   {
-//     id: "9",
-//     name: "Lisinopril",
-//     date: "19/10/24",
-//     groupType: "Pharmacy",
-//     status: "Pending",
-//   },
-//   {
-//     id: "10",
-//     name: "Simvastatin",
-//     date: "19/10/24",
-//     groupType: "Technical",
-//     status: "Pending",
-//   },
-// ];
-
-// const certifiedMedicines = [
-//   {
-//     id: "1",
-//     name: "Cefotaxime Medo",
-//     date: "20/10/24",
-//     groupType: "Pharmacy",
-//     status: "Approved",
-//   },
-//   {
-//     id: "2",
-//     name: "Ibuprofen",
-//     date: "20/10/24",
-//     groupType: "Technical",
-//     status: "Approved",
-//   },
-//   {
-//     id: "3",
-//     name: "Paracetamol",
-//     date: "20/10/24",
-//     groupType: "Technical",
-//     status: "Approved",
-//   },
-//   {
-//     id: "4",
-//     name: "Metformin",
-//     date: "19/10/24",
-//     groupType: "Pharmacy",
-//     status: "Approved",
-//   },
-//   {
-//     id: "5",
-//     name: "Omeprazole",
-//     date: "18/10/24",
-//     groupType: "Pharmacy",
-//     status: "Approved",
-//   },
-//   {
-//     id: "6",
-//     name: "Doxycycline",
-//     date: "17/10/24",
-//     groupType: "Technical",
-//     status: "Approved",
-//   },
-//   {
-//     id: "7",
-//     name: "Amoxicillin",
-//     date: "20/10/24",
-//     groupType: "Pharmacy",
-//     status: "Approved",
-//   },
-//   {
-//     id: "8",
-//     name: "Aspirin",
-//     date: "20/10/24",
-//     groupType: "Technical",
-//     status: "Approved",
-//   },
-//   {
-//     id: "9",
-//     name: "Lisinopril",
-//     date: "19/10/24",
-//     groupType: "Pharmacy",
-//     status: "Approved",
-//   },
-//   {
-//     id: "10",
-//     name: "Simvastatin",
-//     date: "19/10/24",
-//     groupType: "Technical",
-//     status: "Approved",
-//   },
-//   {
-//     id: "11",
-//     name: "Metoprolol",
-//     date: "18/10/24",
-//     groupType: "Pharmacy",
-//     status: "Approved",
-//   },
-//   {
-//     id: "12",
-//     name: "Amlodipine",
-//     date: "18/10/24",
-//     groupType: "Technical",
-//     status: "Approved",
-//   },
-//   {
-//     id: "13",
-//     name: "Gabapentin",
-//     date: "17/10/24",
-//     groupType: "Pharmacy",
-//     status: "Approved",
-//   },
-//   {
-//     id: "14",
-//     name: "Sertraline",
-//     date: "17/10/24",
-//     groupType: "Technical",
-//     status: "Approved",
-//   },
-//   {
-//     id: "15",
-//     name: "Fluoxetine",
-//     date: "16/10/24",
-//     groupType: "Pharmacy",
-//     status: "Approved",
-//   },
-// ];
-
-const getGroupTypeBadgeColor = (type: string) => {
-  switch (type) {
-    case "Pharmacy":
-      return "bg-[#0066ff] hover:bg-[#0066ff]";
-    case "Technical":
-      return "bg-[#9747ff] hover:bg-[#9747ff]";
-    default:
-      return "bg-gray-500 hover:bg-gray-500";
-  }
-};
-
-const getStatusBadgeStyle = (status: string) => {
+// import { getStatusBadgeStyle, getGroupTypeBadgeColor } from "@/utils/helpers";
+export const getStatusBadgeStyle = (status: string) => {
   switch (status) {
     case "approved":
       return "bg-[#cff7d3] text-[#14ae5c] border-[#cff7d3]";
@@ -227,6 +34,17 @@ const getStatusBadgeStyle = (status: string) => {
       return "bg-[#ddc3ff] text-[#7307ff] border-[#ddc3ff]";
     default:
       return "bg-gray-100 text-gray-500 border-gray-200";
+  }
+};
+
+export const getGroupTypeBadgeColor = (type: string) => {
+  switch (type) {
+    case "Pharmacy":
+      return "bg-[#0066ff] hover:bg-[#0066ff]";
+    case "Technical":
+      return "bg-[#9747ff] hover:bg-[#9747ff]";
+    default:
+      return "bg-gray-500 hover:bg-gray-500";
   }
 };
 
@@ -254,7 +72,7 @@ export default function DashboardPage() {
   });
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
   const { status, loading, error } = useAppSelector((state) => state.medicine);
-  const filteredMedicines = useAppSelector((state) => 
+  const filteredMedicines = useAppSelector((state) =>
     selectFilteredMedicines(state, filters, searchQuery, sortOrder)
   );
   const dispatch = useAppDispatch();
@@ -270,11 +88,17 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    console.log("[Dashboard] Component mounted or activeTab changed:", activeTab);
+    console.log(
+      "[Dashboard] Component mounted or activeTab changed:",
+      activeTab
+    );
     console.log("[Dashboard] Current loading state:", loading);
     if (!loading) {
       const status = getActiveTab(activeTab);
-      console.log("[Dashboard] Dispatching getMedicineByStatus with status:", status);
+      console.log(
+        "[Dashboard] Dispatching getMedicineByStatus with status:",
+        status
+      );
       dispatch(getMedicineByStatus(status));
     }
     return () => {
@@ -284,8 +108,18 @@ export default function DashboardPage() {
   }, [activeTab]);
 
   useEffect(() => {
-    console.log("[Dashboard] State update - loading:", loading, "status:", status, "error:", error);
-    console.log("[Dashboard] Filtered medicines count:", filteredMedicines.length);
+    console.log(
+      "[Dashboard] State update - loading:",
+      loading,
+      "status:",
+      status,
+      "error:",
+      error
+    );
+    console.log(
+      "[Dashboard] Filtered medicines count:",
+      filteredMedicines.length
+    );
   }, [loading, status, error, filteredMedicines]);
 
   return (
@@ -308,7 +142,6 @@ export default function DashboardPage() {
                 Waiting List
               </div>
             </TabsTrigger>
-            {/* <div className="sm:w-[1px] w-[2px] h-full bg-color-gray-250"></div> */}
             <TabsTrigger value="approved" className="px-0 py-0">
               <div
                 className={`w-full bg-white px-4 py-2 h-full flex items-center border-r-[1.5px] border-color-gray-250 ${
@@ -320,7 +153,6 @@ export default function DashboardPage() {
                 Certified List
               </div>
             </TabsTrigger>
-            {/* <div className=" h-full bg-color-gray-250 border-r-[2px] border-red-900"></div> */}
             <TabsTrigger value="completed" className="px-0 py-0">
               <div
                 className={`w-full bg-white px-4 py-2 h-full rounded-tr-[4px] flex items-center  ${
@@ -394,9 +226,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div>
-                <div
-                  className={`hidden sm:grid sm:grid-cols-[1fr,100px,120px,100px] items-center gap-4 p-4`}
-                >
+                <div className="hidden sm:grid sm:grid-cols-[1fr,100px,120px,100px] items-center gap-4 p-4">
                   <div className="font-medium text-color-gray-400">
                     Medicine Name
                   </div>
@@ -419,8 +249,12 @@ export default function DashboardPage() {
                     <Link
                       href={
                         medicine.status === "approved"
-                          ? `/dashboard/medicines/certified/${encodeURIComponent(medicine.product_name as string)}`
-                          : `/dashboard/medicines/${encodeURIComponent(medicine.product_name as string)}`
+                          ? `/dashboard/medicines/certified/${encodeURIComponent(
+                              medicine.product_name as string
+                            )}`
+                          : `/dashboard/medicines/${encodeURIComponent(
+                              medicine.product_name as string
+                            )}`
                       }
                       className={`flex flex-wrap sm:grid grid-cols-[minmax(0,1fr),100px,120px,100px] items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer`}
                     >

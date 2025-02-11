@@ -9,13 +9,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import FilterIcon from "./FilterIcon";
+import FilterIcon from "./ui/FilterIcon";
 
 interface FilterSelectProps {
-  onFilterChange: (filters: FilterState) => void;
+  onFilterChange: (filters: FilterStateUsers) => void;
 }
 
-interface FilterState {
+export interface FilterStateUsers {
   all: boolean;
   pharm: boolean;
   tech: boolean;
@@ -23,14 +23,14 @@ interface FilterState {
 }
 
 export function FilterSelect({ onFilterChange }: FilterSelectProps) {
-  const [filters, setFilters] = React.useState<FilterState>({
+  const [filters, setFilters] = React.useState<FilterStateUsers>({
     all: true,
     pharm: false,
     tech: false,
     admin: false,
   });
 
-  const handleFilterChange = (key: keyof FilterState) => {
+  const handleFilterChange = (key: keyof FilterStateUsers) => {
     const newFilters = { ...filters };
 
     if (key === "all") {

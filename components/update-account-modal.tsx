@@ -25,7 +25,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { SuccessModal } from "./success-modal";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearError, updateCurrentUser } from "@/store/slices/userSlice";
 import { FailedModal } from "./FailedModal";
@@ -89,22 +88,28 @@ export function UpdateAccountModal({
       form.reset();
       toast({
         duration: 3000,
-        className: "sm:w-[380px] w-[200px] bg-white rounded-[8px] border-none p-0 flex items-center justify-center",
+        className:
+          "sm:w-[380px] w-[200px] bg-white rounded-[8px] border-none p-0 flex items-center justify-center",
         description: (
           <div className="flex flex-col items-center justify-center p-3 w-full">
             <CheckCircle2 className="w-16 h-16 text-[#14ae5c] mb-4" />
-            <p className="text-xl font-semibold text-center w-full">Profile updated successfully</p>
+            <p className="text-xl font-semibold text-center w-full">
+              Profile updated successfully
+            </p>
           </div>
         ),
       });
     } else if (!loading && status === "error") {
       toast({
         duration: 3000,
-        className: "sm:w-[380px] w-[200px] bg-white rounded-[8px] border-none p-0 flex items-center justify-center",
+        className:
+          "sm:w-[380px] w-[200px] bg-white rounded-[8px] border-none p-0 flex items-center justify-center",
         description: (
           <div className="flex flex-col items-center justify-center p-3 w-full">
             <AlertCircle className="h-10 w-10 text-[#ec221f]" />
-            <p className="text-xl font-semibold text-center w-full">{updatingError || "Failed to update profile"}</p>
+            <p className="text-xl font-semibold text-center w-full">
+              {updatingError || "Failed to update profile"}
+            </p>
           </div>
         ),
       });
@@ -136,8 +141,7 @@ export function UpdateAccountModal({
         </DialogHeader>
         <div className="mt-2">
           <p className="text-center">
-            Please provide details to update the account in CATAI Pharm
-            Desktop
+            Please provide details to update the account in CATAI Pharm Desktop
           </p>
         </div>
         <Form {...form}>

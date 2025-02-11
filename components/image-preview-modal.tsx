@@ -16,15 +16,15 @@ export function ImagePreviewModal({
 }: ImagePreviewModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden bg-white">
         <div className="relative w-full h-[90vh]">
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-2 z-10 bg-white/80 hover:bg-white/90 rounded-full"
+            className="absolute right-2 top-2 z-10 bg-white/80 hover:bg-white/90 rounded-full border-2"
             onClick={onClose}
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 " />
           </Button>
           <div className="w-full h-full relative">
             <Image
@@ -39,4 +39,4 @@ export function ImagePreviewModal({
       </DialogContent>
     </Dialog>
   );
-} 
+}

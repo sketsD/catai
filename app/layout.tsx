@@ -64,7 +64,10 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
       <body
         className={`font-sans ${notoSans.className} font-weight-500 text-color-gray-950`}
       >
-        <div id="global-loading" className={`global-loading ${isHydrated ? 'hidden' : ''}`}>
+        <div
+          id="global-loading"
+          className={`global-loading ${isHydrated ? "hidden" : ""}`}
+        >
           <div className="spinner"></div>
         </div>
         <Provider store={store}>

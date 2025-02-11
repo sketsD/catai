@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import Logo from "./Logo";
 import Link from "next/link";
+import Logo from "./ui/Logo";
 
 const Navbar: React.FC<{ children?: ReactNode }> = ({ children }) => {
   return (

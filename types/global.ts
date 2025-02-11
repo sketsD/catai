@@ -90,6 +90,7 @@ export interface Medicine {
   upload_time: string;
   images_location: Array<string | null>;
   qr_location: Object;
+  response_id?: string;
 }
 
 export interface MedicineState extends State {
@@ -97,13 +98,18 @@ export interface MedicineState extends State {
   medicines: Array<Medicine> | [];
 }
 
-export interface LASAAnalysisResponse {
-  response_id: string;
-  ProductName: string;
+export interface LASAAnalysis {
   ImageLocation: string;
+  ImageSimilarity: number[];
+  ProductName: string;
+  SimilarImagesLocation: string[];
   SimilarProductsName: string[];
   TextSimilarity: number[];
-  TextSimilarityImages: string[];
-  ImageSimilarity: number[];
-  ImageSimilarityImages: string[];
+  response_id: string;
+  // TextSimilarityImages: string[];
+  // ImageSimilarityImages: string[];
+}
+
+export interface LASAAnalysisResponse extends LASAAnalysis {
+  LASAAnalysisResponse: Array<LASAAnalysis>;
 }
