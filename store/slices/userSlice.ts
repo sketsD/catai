@@ -37,6 +37,7 @@ export const getCurrentUser = createAsyncThunk<
   { rejectValue: string }
 >("user/getCurrentUser", async (id, { rejectWithValue }) => {
   try {
+    const token = getLocalStorage("auth-token");
     if (!token) throw new Error("Token is not provided");
     const response = await userService.getCurrentUser({ ...id, token });
     console.log("[USER getCurrentUser] response: ", response);
