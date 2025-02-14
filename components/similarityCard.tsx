@@ -33,10 +33,15 @@ export default function SimilarityCard({
   //   onToggleExpand: () => void;
 }) {
   const [isExpanded, setExpanded] = useState<boolean>(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<number | null>(null);
   const toggleExpand = () => {
     setExpanded((prev) => !prev);
   };
+  const allImages = [
+    `s3://pharmacy-sheba/${ImageLocation}`,
+    ...images.map((image) => `s3://pharmacy-sheba/${image.url}`),
+  ];
+  // console.log(allImages);
   return (
     <>
       <div className="border border-[#e5e5e5] p-4 sm:p-6 rounded-[8px]">
@@ -46,9 +51,7 @@ export default function SimilarityCard({
               <div className="flex items-center gap-4 xl:m-0 mr-4">
                 <div
                   className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-[8px] cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() =>
-                    setSelectedImage(`s3://pharmacy-sheba/${ImageLocation}`)
-                  }
+                  onClick={() => setSelectedImage(0)}
                 >
                   {/* <Image
                     src={placeholder}
@@ -66,8 +69,8 @@ export default function SimilarityCard({
                   ))} */}
 
                   <Image
-                    src={getPublicS3Url(`s3://pharmacy-sheba/${ImageLocation}`)}
-                    alt={`Medicine ${ImageLocation + 1}`}
+                    src={getPublicS3Url(allImages[0])}
+                    alt={`Medicine ${name}`}
                     fill
                     className="object-cover"
                   />
@@ -84,20 +87,15 @@ export default function SimilarityCard({
             </div>
             {isExpanded && (
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {images.map((image, index) => (
+                {allImages.slice(1).map((image, index) => (
                   <div
-                    key={index}
+                    key={index + 1}
                     className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-[8px] cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() =>
-                      setSelectedImage(`s3://pharmacy-sheba/${image.url}`)
-                    }
+                    onClick={() => setSelectedImage(index + 1)}
                   >
                     <Image
-                      src={
-                        getPublicS3Url(`s3://pharmacy-sheba/${image.url}`) ||
-                        "/placeholder.svg"
-                      }
-                      alt={`Medicine ${index + 1}`}
+                      src={getPublicS3Url(image) || "/placeholder.svg"}
+                      alt={`Medicine ${name} + ${index + 1}`}
                       fill
                       className="object-cover"
                     />
@@ -173,10 +171,17 @@ export default function SimilarityCard({
           </div>
         </div>
       </div>
-      <ImagePreviewModal
+      {/* <ImagePreviewModal
         isOpen={!!selectedImage}
         onClose={() => setSelectedImage(null)}
         imageUrl={selectedImage ? getPublicS3Url(selectedImage) : ""}
+      /> */}
+      <ImagePreviewModal
+        isOpen={selectedImage !== null}
+        onClose={() => setSelectedImage(null)}
+        images={allImages as Array<string>}
+        selectedImage={selectedImage}
+        onImageChange={(index) => setSelectedImage(index)}
       />
     </>
   );

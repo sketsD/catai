@@ -23,6 +23,7 @@ import {
 } from "@/store/slices/medicineSlice";
 import { Spinner } from "@/components/ui/spinner";
 import { format, formatDate, formatISO, parseISO } from "date-fns";
+import { statusCapital } from "@/utils/helpers";
 // import { getStatusBadgeStyle, getGroupTypeBadgeColor } from "@/utils/helpers";
 export const getStatusBadgeStyle = (status: string) => {
   switch (status) {
@@ -281,7 +282,7 @@ export default function DashboardPage() {
                             medicine.status as string
                           )} whitespace-nowrap py-2`}
                         >
-                          {medicine.status}
+                          {statusCapital(medicine?.status || "")}
                         </Badge>
                       </div>
                     </Link>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ArrowLeft, Star } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +24,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "next/navigation";
 import { getPublicS3Url } from "@/utils/s3Utils";
 import { ImagePreviewModal } from "@/components/image-preview-modal";
+import { Medicine } from "@/types/global";
+import { useToast } from "@/hooks/use-toast";
+import { getLocalStorage } from "@/utils/localStorage";
+import { medicineService } from "@/utils/medicineService";
+import { statusCapital } from "@/utils/helpers";
 
 const remarks = [
   {
@@ -59,17 +64,113 @@ export default function CertifiedMedicineDetailPage({
   );
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("medication");
   const [showAllImages, setShowAllImages] = useState(false);
   const [starredOnly, setStarredOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedData, setEditedData] = useState<Medicine | null>(null);
+
+  useEffect(() => {
+    if (currentMedicine?.at(0)) {
+      setEditedData(currentMedicine.at(0) as Medicine);
+    }
+  }, [currentMedicine]);
 
   useEffect(() => {
     dispatch(getMedicineByName(params.id));
   }, [dispatch, params.id]);
 
   const data = currentMedicine?.at(0);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditedData(data as Medicine);
+  };
+  const handleInputChange = (field: keyof Medicine, value: string) => {
+    if (editedData) {
+      setEditedData({ ...editedData, [field]: value });
+    }
+  };
+
+  const handleSave = async () => {
+    if (!editedData || !data) return;
+
+    try {
+      const token = getLocalStorage("auth-token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await medicineService.updateMedicine({
+        medicine: editedData,
+        originalMedicine: data,
+        token,
+      });
+
+      // If medicine name was updated, update the URL and redirect
+      if (editedData.product_name !== data.product_name) {
+        router.replace(
+          `/dashboard/medicines/certified/${editedData.product_name}`
+        );
+      }
+
+      // Refresh the data with new name if changed
+      dispatch(getMedicineByName(editedData.product_name as string));
+
+      // Show success message with updated fields
+      const updatedFields = Object.entries(response)
+        .filter(([_, updated]) => updated)
+        .map(([field]) => field)
+        .join(", ");
+
+      if (updatedFields) {
+        toast({
+          description: (
+            <div className="flex flex-col items-center justify-center p-3 w-full bg-white">
+              <CheckCircle2 className="w-16 h-16 text-[#14ae5c] mb-4" />
+              <p className="text-xl font-semibold text-center w-full">
+                Medicine successfully updated
+              </p>
+            </div>
+          ),
+          className: "bg-white border-none",
+        });
+      } else {
+        toast({
+          description: (
+            <div className="flex flex-col items-center justify-center p-3 w-full bg-white">
+              <AlertCircle className="h-10 w-10 text-[#14ae5c]" />
+              <p className="text-xl font-semibold text-center w-full">
+                No changes were made
+              </p>
+            </div>
+          ),
+          className: "bg-white border-none",
+        });
+      }
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update medicine:", error);
+      toast({
+        variant: "destructive",
+        description: (
+          <div className="flex flex-col items-center justify-center p-3 w-full">
+            <AlertCircle className="h-10 w-10 text-[#ec221f]" />
+            <p className="text-xl font-semibold text-center w-full">
+              Failed to update medicine
+            </p>
+          </div>
+        ),
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -138,10 +239,10 @@ export default function CertifiedMedicineDetailPage({
                 <div
                   key={index}
                   className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-[8px] cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => setSelectedImage(image)}
+                  onClick={() => setSelectedImage(index)}
                 >
                   <Image
-                    src={getPublicS3Url(image)}
+                    src={getPublicS3Url(image as string)}
                     alt={`Medicine ${index + 1}`}
                     fill
                     className="object-cover"
@@ -161,10 +262,17 @@ export default function CertifiedMedicineDetailPage({
           </div>
 
           {/* Image Preview Modal */}
-          <ImagePreviewModal
+          {/* <ImagePreviewModal
             isOpen={!!selectedImage}
             onClose={() => setSelectedImage(null)}
             imageUrl={selectedImage ? getPublicS3Url(selectedImage) : ""}
+          /> */}
+          <ImagePreviewModal
+            isOpen={selectedImage !== null}
+            onClose={() => setSelectedImage(null)}
+            images={data.images_location as Array<string>}
+            selectedImage={selectedImage}
+            onImageChange={(index) => setSelectedImage(index)}
           />
 
           {/* Title and Actions */}
@@ -175,19 +283,38 @@ export default function CertifiedMedicineDetailPage({
                 variant="outline"
                 className="bg-[#cff7d3] text-[#14ae5c] border-[#cff7d3] whitespace-nowrap py-2"
               >
-                {data.status}
+                {statusCapital(data?.status || "")}
               </Badge>
               <h1 className="text-2xl font-semibold text-nowrap mr-2">
                 {data.product_name}
               </h1>
             </div>
-            <Button
-              variant="outline"
-              className="flex justify-center items-center w-full sm:w-[8rem] gap-3 bg-logoblue text-white rounded-[8px] mt-2 sm:mt-0 hover:bg-blue-700 hover:text-white"
-            >
-              <PencilIcon />
-              Edit
-            </Button>
+            {isEditing ? (
+              <div className="flex flex-wrap gap-1 lg:gap-3">
+                <Button
+                  variant="outline"
+                  className="flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 border-logoblue text-logoblue rounded-[8px] mt-2 sm:mt-0 hover:bg-gray-100 [&>svg]:text-logoblue"
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 bg-logoblue text-white rounded-[8px] mt-2 sm:mt-0 hover:bg-blue-700"
+                  onClick={handleSave}
+                >
+                  Save
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                className="flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 border-logoblue text-logoblue rounded-[8px] mt-2 sm:mt-0 hover:bg-gray-100 [&>svg]:text-logoblue"
+                onClick={handleEdit}
+              >
+                <PencilIcon />
+                Edit
+              </Button>
+            )}
           </div>
 
           {/* Tabs */}
@@ -265,24 +392,33 @@ export default function CertifiedMedicineDetailPage({
                   <div>
                     <label className="block text-sm mb-1">Product Name</label>
                     <Input
-                      value={data.product_name || ""}
-                      readOnly
+                      value={editedData?.product_name || ""}
+                      readOnly={!isEditing}
+                      onChange={(e) =>
+                        handleInputChange("product_name", e.target.value)
+                      }
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
                   <div>
                     <label className="block text-sm mb-1">Category</label>
                     <Input
-                      value={data.category || ""}
-                      readOnly
+                      value={editedData?.category || ""}
+                      readOnly={!isEditing}
+                      onChange={(e) =>
+                        handleInputChange("category", e.target.value)
+                      }
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
                   <div>
                     <label className="block text-sm mb-1">Intake Method</label>
                     <Input
-                      value={data.intake_method || ""}
-                      readOnly
+                      value={editedData?.intake_method || ""}
+                      readOnly={!isEditing}
+                      onChange={(e) =>
+                        handleInputChange("intake_method", e.target.value)
+                      }
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
@@ -291,8 +427,13 @@ export default function CertifiedMedicineDetailPage({
                       Manufactured country
                     </label>
                     <Input
-                      value={data.manufacturing_country || ""}
-                      readOnly
+                      value={editedData?.manufacturing_country || ""}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "manufacturing_country",
+                          e.target.value
+                        )
+                      }
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
@@ -301,8 +442,14 @@ export default function CertifiedMedicineDetailPage({
                       Country of registration
                     </label>
                     <Input
-                      value={data.country_registration || ""}
-                      readOnly
+                      value={editedData?.country_registration || ""}
+                      readOnly={!isEditing}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "country_registration",
+                          e.target.value
+                        )
+                      }
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
@@ -315,24 +462,30 @@ export default function CertifiedMedicineDetailPage({
                       Catalog Number / Barcode
                     </label>
                     <Input
-                      value={data.barcode || ""}
-                      readOnly
+                      value={editedData?.barcode || ""}
+                      readOnly={!isEditing}
+                      onChange={(e) =>
+                        handleInputChange("barcode", e.target.value)
+                      }
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
                   <div>
                     <label className="block text-sm mb-1">ID</label>
                     <Input
-                      value={data.metadata_id || ""}
-                      readOnly
+                      value={editedData?.metadata_id || ""}
+                      readOnly={true}
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
                   <div>
                     <label className="block text-sm mb-1">Manufacturer</label>
                     <Input
-                      value={data.manufacturer || ""}
-                      readOnly
+                      value={editedData?.manufacturer || ""}
+                      readOnly={!isEditing}
+                      onChange={(e) =>
+                        handleInputChange("manufacturer", e.target.value)
+                      }
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
@@ -341,8 +494,11 @@ export default function CertifiedMedicineDetailPage({
                       Type of packaging
                     </label>
                     <Input
-                      value={data.type_packaging || ""}
-                      readOnly
+                      value={editedData?.type_packaging || ""}
+                      readOnly={!isEditing}
+                      onChange={(e) =>
+                        handleInputChange("type_packaging", e.target.value)
+                      }
                       className="rounded-[8px] mt-1 border-color-gray-250"
                     />
                   </div>
@@ -480,7 +636,7 @@ export default function CertifiedMedicineDetailPage({
                     <div>
                       <label className="mb-1.5 block text-sm">Status</label>
                       <Input
-                        value={data.status}
+                        value={"Pending"}
                         readOnly
                         className="rounded-[8px] mt-1 border-color-gray-250"
                       />

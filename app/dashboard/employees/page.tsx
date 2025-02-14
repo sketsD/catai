@@ -49,9 +49,7 @@ export default function EmployeesPage() {
   });
   const dispatch = useAppDispatch();
   const { userid } = useAppSelector((state) => state.auth);
-  const { users, loading, error, status } = useAppSelector(
-    (state) => state.user
-  );
+  const { loading, error, status } = useAppSelector((state) => state.user);
   const router = useRouter();
 
   const filteredUsers = useAppSelector((state) =>
@@ -76,6 +74,7 @@ export default function EmployeesPage() {
       error
     );
     console.log("[Users] Filtered users count:", filteredUsers.length);
+    console.log("[Users] Filtered users:", filteredUsers);
   }, [loading, status, error, filteredUsers]);
   // Filter employees based on search query
 

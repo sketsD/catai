@@ -27,7 +27,7 @@ import { CheckCircle2, AlertCircle } from "lucide-react";
 import { getPublicS3Url } from "@/utils/s3Utils";
 import { ImagePreviewModal } from "@/components/image-preview-modal";
 import { getLocalStorage } from "@/utils/localStorage";
-import { getStatusBadgeStyle } from "@/utils/helpers";
+import { getStatusBadgeStyle, statusCapital } from "@/utils/helpers";
 import SimilarityCard from "@/components/similarityCard";
 import DeclineIcon from "@/components/ui/DeclineIcon";
 import FilterIcon from "@/components/ui/FilterIcon";
@@ -97,7 +97,8 @@ export default function MedicineDetailPage({
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<Medicine | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<number | null>(null);
   const [lasaData, setLasaData] = useState<Array<LASAAnalysisResponse> | null>(
     null
   );
@@ -416,7 +417,7 @@ export default function MedicineDetailPage({
                   <div
                     key={index}
                     className="w-32 h-32 flex-shrink-0 relative overflow-hidden rounded-[8px] cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => setSelectedImage(image)}
+                    onClick={() => setSelectedImage(index)}
                   >
                     <Image
                       src={getPublicS3Url(image as string)}
@@ -439,10 +440,17 @@ export default function MedicineDetailPage({
             </div>
 
             {/* Image Preview Modal */}
-            <ImagePreviewModal
+            {/* <ImagePreviewModal
               isOpen={!!selectedImage}
               onClose={() => setSelectedImage(null)}
               imageUrl={selectedImage ? getPublicS3Url(selectedImage) : ""}
+            /> */}
+            <ImagePreviewModal
+              isOpen={selectedImage !== null}
+              onClose={() => setSelectedImage(null)}
+              images={data.images_location as Array<string>}
+              selectedImage={selectedImage}
+              onImageChange={(index) => setSelectedImage(index)}
             />
 
             <div className="flex items-center justify-between mb-8 flex-wrap sm:flex-nowrap">
@@ -454,7 +462,7 @@ export default function MedicineDetailPage({
                   )}
                 `}
                 >
-                  {data.status}
+                  {statusCapital(data?.status || "")}
                 </Badge>
                 <h1 className="text-2xl font-semibold text-nowrap mr-2">
                   {data.product_name}
@@ -487,31 +495,40 @@ export default function MedicineDetailPage({
                       <PencilIcon />
                       Edit
                     </Button>
-                    <Button
-                      variant="ghost"
-                      className={`flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 border-color-red-danger border-[1px] text-[#ec221f] rounded-[8px] mt-2 sm:mt-0 hover:bg-red-50 [&>svg]:text-[#ec221f] ${
-                        data.status === "completed"
-                          ? "opacity-50 cursor-not-allowed"
-                          : ""
-                      }`}
-                      onClick={() => setShowDeclineModal(true)}
-                      disabled={data.status === "completed"}
-                    >
-                      <DeclineIcon />
-                      Decline
-                    </Button>
-                    <Button
-                      className={`flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 bg-[#14ae5c] text-white rounded-[8px] mt-2 sm:mt-0 hover:bg-[#119a50] [&>svg]:text-white ${
-                        data.status === "approved"
-                          ? "opacity-50 cursor-not-allowed"
-                          : ""
-                      }`}
-                      onClick={handleApprove}
-                      disabled={data.status === "approved"}
-                    >
-                      <CheckIconSmall />
-                      Approve
-                    </Button>
+
+                    {data.status !== "completed" && (
+                      <Button
+                        variant="ghost"
+                        className={`flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 border-color-red-danger border-[1px] text-[#ec221f] rounded-[8px] mt-2 sm:mt-0 hover:bg-red-50 [&>svg]:text-[#ec221f] 
+                      `}
+                        //   ${
+                        //   data.status === "completed"
+                        //     ? "opacity-50 cursor-not-allowed"
+                        //     : ""
+                        // }
+                        onClick={() => setShowDeclineModal(true)}
+                        // disabled={data.status === "completed"}
+                      >
+                        <DeclineIcon />
+                        Decline
+                      </Button>
+                    )}
+                    {data.status !== "approved" && (
+                      <Button
+                        className={`flex justify-center items-center w-fit xl:w-[8rem] xl:gap-3 gap-1 bg-[#14ae5c] text-white rounded-[8px] mt-2 sm:mt-0 hover:bg-[#119a50] [&>svg]:text-white 
+                          `}
+                        //   ${
+                        //   data.status === "approved"
+                        //     ? "opacity-50 cursor-not-allowed"
+                        //     : ""
+                        // }
+                        onClick={handleApprove}
+                        // disabled={data.status === "approved"}
+                      >
+                        <CheckIconSmall />
+                        Approve
+                      </Button>
+                    )}
                   </>
                 )}
               </div>

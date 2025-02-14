@@ -31,6 +31,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     if (isInitialCheck) {
       checkAuthentication();
     }
+
+    if (!isInitialCheck && !token) {
+      checkAuthentication();
+    }
   }, [dispatch, router, isAuthenticated, token, isInitialCheck]);
 
   if (isInitialCheck || loading) {

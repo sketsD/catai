@@ -1,3 +1,8 @@
+export const statusCapital = (status?: string) => {
+  if (!status || status === "") return "";
+  return status[0].toUpperCase() + status.slice(1);
+};
+
 export const isRole = (role: string) => {
   return role === "admin"
     ? "Admin"

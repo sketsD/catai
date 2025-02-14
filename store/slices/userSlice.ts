@@ -24,7 +24,7 @@ export const getAllUsers = createAsyncThunk<
     const token = getLocalStorage("auth-token");
     if (!token) throw new Error("Token is not provided");
     const response = await userService.getUsers(token);
-    console.log(response);
+    console.log("[USER getAllUsers] response: ", response);
     return response.data;
   } catch (error: any) {
     return rejectWithValue(error?.message || "Registration failed");
@@ -39,7 +39,7 @@ export const getCurrentUser = createAsyncThunk<
   try {
     if (!token) throw new Error("Token is not provided");
     const response = await userService.getCurrentUser({ ...id, token });
-    console.log(response);
+    console.log("[USER getCurrentUser] response: ", response);
     return response.data;
   } catch (error: any) {
     return rejectWithValue(error?.message || "Failed to load user data");
