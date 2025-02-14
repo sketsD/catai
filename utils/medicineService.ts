@@ -71,8 +71,9 @@ export const medicineService = {
 
   getMedicineByName: ({ name, token }: { name: string; token: string }) => {
     console.log(`[Medicine Service] Fetching medicine with name: ${name}`);
+    const decodedName = decodeURIComponent(name);
     return api
-      .get<Medicine>(`/medicine/${encodeURIComponent(name)}?jwt_token=${token}`)
+      .get<Medicine>(`/medicine/${encodeURIComponent(decodedName)}?jwt_token=${token}`)
       .then((response) => {
         console.log(
           `[Medicine Service] Successfully fetched medicine: ${name}`
