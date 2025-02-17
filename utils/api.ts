@@ -42,7 +42,7 @@ export const setupApiInterceptors = (logout: () => void) => {
         console.log("[API] Unauthorized Status: " + error.status);
         logout();
       }
-      return Promise.reject(error);
+      return Promise.reject(apiError);
     }
   );
 };
