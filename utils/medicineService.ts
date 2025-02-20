@@ -1,6 +1,6 @@
 import { Medicine } from "@/types/global";
 import { api } from "./api";
-import { LASAAnalysisResponse } from "@/types/global";
+import { LASAAnalysis } from "@/types/global";
 
 type TokenId = {
   token: string;
@@ -73,7 +73,9 @@ export const medicineService = {
     console.log(`[Medicine Service] Fetching medicine with name: ${name}`);
     const decodedName = decodeURIComponent(name);
     return api
-      .get<Medicine>(`/medicine/${encodeURIComponent(decodedName)}?jwt_token=${token}`)
+      .get<Medicine>(
+        `/medicine/${encodeURIComponent(decodedName)}?jwt_token=${token}`
+      )
       .then((response) => {
         console.log(
           `[Medicine Service] Successfully fetched medicine: ${name}`
@@ -201,9 +203,7 @@ export const medicineService = {
       `[Medicine Service] Fetching LASA analysis for response ID: ${responseId}`
     );
     return api
-      .post<LASAAnalysisResponse>(
-        `/find_similar/${responseId}?jwt_token=${token}`
-      )
+      .post<LASAAnalysis>(`/similar/${responseId}?jwt_token=${token}`)
       .then((response) => {
         console.log(
           `[Medicine Service] Successfully fetched LASA analysis for response ID: ${responseId}`

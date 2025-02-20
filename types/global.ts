@@ -98,18 +98,42 @@ export interface MedicineState extends State {
   medicines: Array<Medicine> | [];
 }
 
-export interface LASAAnalysis {
-  ImageLocation: string;
-  ImageSimilarity: number[];
-  ProductName: string;
-  SimilarImagesLocation: string[];
-  SimilarProductsName: string[];
-  TextSimilarity: number[];
-  response_id: string;
-  // TextSimilarityImages: string[];
-  // ImageSimilarityImages: string[];
-}
+// export interface LASAAnalysis {
+//   ImageLocation: string;
+//   ImageSimilarity: number[];
+//   ProductName: string;
+//   SimilarImagesLocation: string[];
+//   SimilarProductsName: string[];
+//   TextSimilarity: number[];
+//   response_id: string;
+//   // TextSimilarityImages: string[];
+//   // ImageSimilarityImages: string[];
+// }
 
-export interface LASAAnalysisResponse extends LASAAnalysis {
-  LASAAnalysisResponse: Array<LASAAnalysis>;
+export interface LASAItem {
+  SimilarProductsName: Array<string>;
+  SimilarImagesLocation: Array<string>;
+  FinalScore: Array<number>;
+  ImageSimilarity: Array<number>;
+  TextSimilarity: Array<number>;
+  SizeSimilarity: Array<number>;
 }
+export interface LASAAnalysis {
+  response_id: string;
+  product_name: string;
+  similar_entries: {
+    [key: string]: LASAItem;
+  };
+}
+// export interface LASAAnalysis {
+//   SimilarProductsName: string[];
+//   TextSimilarity: number[];
+//   ImageSimilarity: number[];
+//   SizeSimilarity: number[];
+//   FinalScore: number[];
+//   SimilarImagesLocation: string[];
+// }
+
+// export interface LASAAnalysisResponse extends LASAAnalysis {
+//   LASAAnalysisResponse: Array<LASAAnalysis>;
+// }

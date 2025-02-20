@@ -18,7 +18,7 @@ import PencilIcon from "@/components/ui/pencilIcon";
 import CheckIconSmall from "@/components/ui/CheckIconSmall";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { getMedicineByName } from "@/store/slices/medicineSlice";
-import { Medicine, LASAAnalysisResponse } from "@/types/global";
+import { Medicine, LASAAnalysis } from "@/types/global";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "next/navigation";
 import { medicineService } from "@/utils/medicineService";
@@ -99,9 +99,7 @@ export default function MedicineDetailPage({
   const [editedData, setEditedData] = useState<Medicine | null>(null);
   // const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
-  const [lasaData, setLasaData] = useState<Array<LASAAnalysisResponse> | null>(
-    null
-  );
+  const [lasaData, setLasaData] = useState<LASAAnalysis | null>(null);
   const [lasaLoading, setLasaLoading] = useState(false);
   const [lasaError, setLasaError] = useState<string | null>(null);
 
@@ -119,6 +117,8 @@ export default function MedicineDetailPage({
       });
       console.log("[View] LASA fetch success:", response.data);
       setLasaData(response.data);
+      console.log("LASA DATA");
+      console.log(lasaData);
     } catch (error: any) {
       console.log("[View] LASA fetch error state triggered");
       console.log("[View] Error full object:", error);
@@ -900,35 +900,28 @@ export default function MedicineDetailPage({
                     </Button>
                   </div>
                 ) : lasaData ? (
-                  lasaData.map((data, index) => (
-                    <SimilarityCard
-                      key={index + 1}
-                      name={data.ProductName}
-                      ImageLocation={data.ImageLocation}
-                      totalSimilarity={Math.round(
-                        Math.max(
-                          ...data.TextSimilarity,
-                          ...data.ImageSimilarity
-                        ) * 100
-                      )}
-                      visualSimilarity={Math.round(
-                        Math.max(...data.ImageSimilarity) * 100
-                      )}
-                      textSimilarity={Math.round(
-                        Math.max(...data.TextSimilarity) * 100
-                      )}
-                      boxSimilarity={Math.round(
-                        Math.max(...data.ImageSimilarity) * 100
-                      )}
-                      images={data.SimilarImagesLocation.map((url) => ({
-                        url,
-                      }))}
-                      // isExpanded={expandedCard === data.ProductName}
-                      // onToggleExpand={() =>
-                      //   handleToggleExpand(data.ProductName)
-                      // }
-                    />
-                  ))
+                  Object.entries(lasaData.similar_entries).map(
+                    ([key, entry], index) => (
+                      <SimilarityCard
+                        key={index}
+                        name={lasaData.product_name}
+                        ImageLocation={key}
+                        totalSimilarity={Math.round(
+                          Math.max(...entry.FinalScore) * 100
+                        )}
+                        visualSimilarity={Math.round(
+                          Math.max(...entry.ImageSimilarity) * 100
+                        )}
+                        textSimilarity={Math.round(
+                          Math.max(...entry.TextSimilarity) * 100
+                        )}
+                        boxSimilarity={Math.round(
+                          Math.max(...entry.SizeSimilarity) * 100
+                        )}
+                        images={entry.SimilarImagesLocation}
+                      />
+                    )
+                  )
                 ) : (
                   <div className="flex flex-col items-center justify-center min-h-[200px] p-6 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">

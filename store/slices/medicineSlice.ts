@@ -228,30 +228,3 @@ export const selectFilteredMedicines = (
 
 export const { clearError, getMedicineData } = medicineSlice.actions;
 export default medicineSlice.reducer;
-
-// Filter and sort medicines
-// const filteredMedicines = medicines.filter((medicine) => {
-//   const matchesSearch = medicine.product_name
-//     .toLowerCase()
-//     .includes(searchQuery.toLowerCase());
-
-//   // Apply group type filter
-// const matchesGroupType =
-//   filters.groupType.all ||
-//   (filters.groupType.technical && medicine.category === "technical") ||
-//   (filters.groupType.pharmacy && medicine.category === "pharmacy");
-
-//   // Apply date filter (simplified for demo)
-//   // const matchesDate = filters.date.oneDay
-//   //   ? medicine.date >= "20/10/24"
-//   //   : medicine.date < "20/10/24";
-
-//   return matchesSearch && matchesGroupType;
-//   // return matchesSearch && matchesGroupType && matchesDate;
-// });
-// .sort((a, b) => {
-//   if (sortOrder === "new") {
-//     return b.date.localeCompare(a.date);
-//   }
-//   return a.date.localeCompare(b.date);
-// });

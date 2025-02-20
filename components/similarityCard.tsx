@@ -28,7 +28,7 @@ export default function SimilarityCard({
   visualSimilarity: number;
   textSimilarity: number;
   boxSimilarity: number;
-  images: { url: string }[];
+  images: Array<string>;
   //   isExpanded: boolean;
   //   onToggleExpand: () => void;
 }) {
@@ -37,10 +37,13 @@ export default function SimilarityCard({
   const toggleExpand = () => {
     setExpanded((prev) => !prev);
   };
-  const allImages = [
-    `s3://pharmacy-sheba/${ImageLocation}`,
-    ...images.map((image) => `s3://pharmacy-sheba/${image.url}`),
-  ];
+  // const allImages = [
+  //   `s3://pharmacy-sheba/${ImageLocation}`,
+  //   ...images.map((image) => `s3://pharmacy-sheba/${image.url}`),
+  // ];
+
+  const allImages = [ImageLocation, ...images];
+
   // console.log(allImages);
   return (
     <>
