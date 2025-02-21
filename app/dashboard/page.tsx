@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, act } from "react";
+import { useState, useEffect, act, useCallback, useMemo } from "react";
 import { SortDesc } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,11 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { format, formatDate, formatISO, parseISO } from "date-fns";
 import { statusCapital } from "@/utils/helpers";
+import { PaginationComponent } from "@/components/pagination";
+import { Medicine } from "@/types/global";
+import { ITEMS_PER_PAGE } from "@/utils/constant";
 // import { getStatusBadgeStyle, getGroupTypeBadgeColor } from "@/utils/helpers";
+
 export const getStatusBadgeStyle = (status: string) => {
   switch (status) {
     case "approved":
@@ -72,19 +76,44 @@ export default function DashboardPage() {
     },
   });
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
+
   const { status, loading, error } = useAppSelector((state) => state.medicine);
   const filteredMedicines = useAppSelector((state) =>
     selectFilteredMedicines(state, filters, searchQuery, sortOrder)
   );
   const dispatch = useAppDispatch();
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(filteredMedicines.length / ITEMS_PER_PAGE);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+  const getCurrentPageItems = useCallback(
+    (page: number, itemsPerPage: number, items: Medicine[]): Medicine[] => {
+      const startIndex = (page - 1) * itemsPerPage;
+      return items.slice(startIndex, startIndex + itemsPerPage);
+    },
+    []
+  );
 
+  // Используем useMemo для оптимизации производительности
+  const currentItems = useMemo(
+    () => getCurrentPageItems(currentPage, ITEMS_PER_PAGE, filteredMedicines),
+    [filteredMedicines, currentPage, getCurrentPageItems]
+  );
+  const handleSearch = (query: string) => {
+    console.log("[Dashboard] Applying query:", query);
+    setCurrentPage(1);
+    setSearchQuery(query);
+  };
   const handleFilter = (filterState: FilterState) => {
     console.log("[Dashboard] Applying filters:", filterState);
+    setCurrentPage(1);
     setFilters(filterState);
   };
 
   const handleSortOrderChange = (order: "new" | "old") => {
     console.log("[Dashboard] Changing sort order to:", order);
+    setCurrentPage(1);
     setSortOrder(order);
   };
 
@@ -96,6 +125,7 @@ export default function DashboardPage() {
     console.log("[Dashboard] Current loading state:", loading);
     if (!loading) {
       const status = getActiveTab(activeTab);
+      setCurrentPage(1);
       console.log(
         "[Dashboard] Dispatching getMedicineByStatus with status:",
         status
@@ -182,7 +212,7 @@ export default function DashboardPage() {
                   placeholder="Search"
                   className="flex-grow sm:flex-grow-0 sm:w-96 rounded-[8px] border-color-gray-250 placeholder:text-color-gray-300"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearch(e.target.value)}
                 />
                 <FilterDialog onFilterChange={handleFilter} />
                 <Popover>
@@ -242,53 +272,62 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {filteredMedicines.map((medicine) => (
-                  <div
-                    className="border-[1px] border-color-gray-250 mb-4 rounded-[8px]"
-                    key={medicine.metadata_id}
-                  >
-                    <Link
-                      href={
-                        medicine.status === "approved"
-                          ? `/dashboard/medicines/certified/${encodeURIComponent(
-                              medicine.product_name as string
-                            )}`
-                          : `/dashboard/medicines/${encodeURIComponent(
-                              medicine.product_name as string
-                            )}`
-                      }
-                      className={`flex flex-wrap sm:grid grid-cols-[minmax(0,1fr),100px,120px,100px] items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer`}
+                {currentItems.map((medicine) => (
+                  <>
+                    <div
+                      className="border-[1px] border-color-gray-250 mb-4 rounded-[8px]"
+                      key={medicine.metadata_id}
                     >
-                      <div className="truncate">{medicine.product_name}</div>
+                      <Link
+                        href={
+                          medicine.status === "approved"
+                            ? `/dashboard/medicines/certified/${encodeURIComponent(
+                                medicine.product_name as string
+                              )}`
+                            : `/dashboard/medicines/${encodeURIComponent(
+                                medicine.product_name as string
+                              )}`
+                        }
+                        className={`flex flex-wrap sm:grid grid-cols-[minmax(0,1fr),100px,120px,100px] items-center gap-4 p-3 hover:bg-gray-50 rounded-[8px] cursor-pointer`}
+                      >
+                        <div className="truncate">{medicine.product_name}</div>
 
-                      <div className="text-center">
-                        {format(parseISO(medicine.created_at), "dd/MM/yyyy")}
-                      </div>
-                      <div className="flex justify-center">
-                        {medicine.category && medicine.category !== "" && (
+                        <div className="text-center">
+                          {format(parseISO(medicine.created_at), "dd/MM/yyyy")}
+                        </div>
+                        <div className="flex justify-center">
+                          {medicine.category && medicine.category !== "" && (
+                            <Badge
+                              className={`${getGroupTypeBadgeColor(
+                                medicine.category as string
+                              )} text-white whitespace-nowrap py-2`}
+                            >
+                              {medicine.category}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex justify-center">
                           <Badge
-                            className={`${getGroupTypeBadgeColor(
-                              medicine.category as string
-                            )} text-white whitespace-nowrap py-2`}
+                            variant="outline"
+                            className={`${getStatusBadgeStyle(
+                              medicine.status as string
+                            )} whitespace-nowrap py-2`}
                           >
-                            {medicine.category}
+                            {statusCapital(medicine?.status || "")}
                           </Badge>
-                        )}
-                      </div>
-                      <div className="flex justify-center">
-                        <Badge
-                          variant="outline"
-                          className={`${getStatusBadgeStyle(
-                            medicine.status as string
-                          )} whitespace-nowrap py-2`}
-                        >
-                          {statusCapital(medicine?.status || "")}
-                        </Badge>
-                      </div>
-                    </Link>
-                  </div>
+                        </div>
+                      </Link>
+                    </div>
+                  </>
                 ))}
-                {filteredMedicines.length === 0 && (
+                {totalPages > 1 && (
+                  <PaginationComponent
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                )}
+                {currentItems.length === 0 && (
                   <div className="p-4 text-center text-color-gray-400">
                     No medicines found
                   </div>

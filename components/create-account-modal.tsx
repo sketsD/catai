@@ -44,13 +44,15 @@ const formSchema = z.object({
 
 interface CreateAccountModalProps {
   isOpen: boolean;
+  // onSuccess: React.Dispatch<React.SetStateAction<boolean>>;
   onClose: () => void;
 }
 
 export function CreateAccountModal({
   isOpen,
   onClose,
-}: CreateAccountModalProps) {
+}: // onSuccess,
+CreateAccountModalProps) {
   const { toast } = useToast();
   const dispatch = useAppDispatch();
   const {
@@ -74,7 +76,8 @@ export function CreateAccountModal({
   useEffect(() => {
     if (!loading && status === "success") {
       onClose();
-      dispatch(getAllUsers());
+      // onSuccess(true);
+      // dispatch(getAllUsers());
       toast({
         duration: 3000,
         className:

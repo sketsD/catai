@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,9 @@ import {
 } from "@/store/slices/userSlice";
 import { isRole } from "@/utils/helpers";
 import { useRouter } from "next/navigation";
+import { ITEMS_PER_PAGE } from "@/utils/constant";
+import { User } from "@/types/global";
+import { PaginationComponent } from "@/components/pagination";
 // import { getBadgeColor } from "@/utils/helpers";
 export const getBadgeColor = (role: string) => {
   switch (role) {
@@ -55,12 +58,37 @@ export default function EmployeesPage() {
   const filteredUsers = useAppSelector((state) =>
     selectFilteredUsers(state, filters, searchQuery, sortOrder)
   );
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+  const getCurrentPageItems = useCallback(
+    (page: number, itemsPerPage: number, items: User[]): User[] => {
+      const startIndex = (page - 1) * itemsPerPage;
+      return items.slice(startIndex, startIndex + itemsPerPage);
+    },
+    []
+  );
+
+  // Используем useMemo для оптимизации производительности
+  const currentItems = useMemo(
+    () => getCurrentPageItems(currentPage, ITEMS_PER_PAGE, filteredUsers),
+    [filteredUsers, currentPage, getCurrentPageItems]
+  );
+  // const [isNewUser, setNewUser] = useState<boolean>(false);
+
+  const handleCreateNewUser = () => {
+    // setNewUser(true);
+  };
   useEffect(() => {
     if (!loading) {
       dispatch(getAllUsers());
     }
     return () => {
       dispatch(clearError());
+      // setNewUser(false);
     };
   }, []);
 
@@ -76,15 +104,24 @@ export default function EmployeesPage() {
     console.log("[Users] Filtered users count:", filteredUsers.length);
     console.log("[Users] Filtered users:", filteredUsers);
   }, [loading, status, error, filteredUsers]);
+
+  const handleSearch = (query: string) => {
+    console.log("[Users] Applying query:", query);
+    setCurrentPage(1);
+    setSearchQuery(query);
+  };
+
   // Filter employees based on search query
 
   const handleFilter = (filterState: FilterStateUsers) => {
     console.log("[Users] Applying filters:", filterState);
+    setCurrentPage(1);
     setFilters(filterState);
   };
 
   const handleSortOrderChange = (order: "asc" | "desc") => {
     console.log("[Users] Changing sort order to:", order);
+    setCurrentPage(1);
     setSortOrder(order);
   };
 
@@ -118,7 +155,7 @@ export default function EmployeesPage() {
                   placeholder="Search"
                   className="flex-grow sm:flex-grow-0 lg:w-96 rounded-[8px] border-color-gray-250 placeholder:text-color-gray-300"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearch(e.target.value)}
                 />
                 <FilterSelect onFilterChange={handleFilter} />
                 <Popover>
@@ -173,7 +210,7 @@ export default function EmployeesPage() {
                   User type
                 </div>
               </div>
-              {filteredUsers.map((user) => (
+              {currentItems.map((user) => (
                 <div
                   key={user.id}
                   className="border-[1px] border-color-gray-250 mb-4 rounded-[8px]"
@@ -207,6 +244,13 @@ export default function EmployeesPage() {
                   </Link>
                 </div>
               ))}
+              {totalPages > 1 && (
+                <PaginationComponent
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              )}
               {filteredUsers.length === 0 && (
                 <div className="p-4 text-center text-gray-500">
                   No employees found
@@ -216,6 +260,7 @@ export default function EmployeesPage() {
           </div>
           <CreateAccountModal
             isOpen={showCreateModal}
+            // onSuccess={handleCreateNewUser}
             onClose={() => setShowCreateModal(false)}
           />
         </div>
